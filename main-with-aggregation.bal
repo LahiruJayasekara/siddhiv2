@@ -29,6 +29,7 @@ type Teacher {
 type TeacherOutput {
     string name;
     int age;
+    int sumAge;
 };
 
 int index = 0;
@@ -40,7 +41,7 @@ TeacherOutput[] globalEmployeeArray = [];
 function main(string... args) {
 
     Teacher[] teachers = [];
-    Teacher t1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+    Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
     Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Hindu College" };
     teachers[0] = t1;
     teachers[1] = t2;
@@ -68,7 +69,7 @@ function main(string... args) {
 
 //  ------------- Query to be implemented -------------------------------------------------------
 //  from inputStream where inputStream.age > 25
-//  select inputStream.name, inputStream.age
+//  select inputStream.name, inputStream.age, sum (inputStream.age) as sumAge
 //      => (TeacherOutput [] o) {
 //            outputStream.publish(o);
 //      }
@@ -76,18 +77,20 @@ function main(string... args) {
 
 function foo() {
 
-    function (any) outputFunc = (any t) => {
-        TeacherOutput t1 = check <TeacherOutput>t;
-        io:println("FFFFFF", t1);
-        outputStream.publish(t1);
+
+
+    function (TeacherOutput) outputFunc = (TeacherOutput t) => {
+        outputStream.publish(t);
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
 
+    streams:Sum sumAggregator = new();
+
     streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
-        (streams:StreamEvent o)  => any {
-            Teacher t = check <Teacher>o.eventObject;
-            TeacherOutput teacherOutput = {name: t.name, age: t.age};
+        (streams:StreamEvent e)  => any {
+            Teacher t = check <Teacher> e.eventObject;
+            TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge:sumAggregator.process(t.age, e.eventType) };
             return teacherOutput;
         });
 

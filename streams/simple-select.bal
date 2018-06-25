@@ -9,17 +9,14 @@ public type SimpleSelect object {
     new(nextProcessorPointer1, selectFunc) {
     }
 
-    public function process1(StreamEvent[] streamEvents) {
+    public function process(StreamEvent[] streamEvents) {
         StreamEvent[] newStreamEventArr = [];
         int index = 0;
         foreach event in streamEvents {
-            io:println("Event: ", event);
-            StreamEvent streamEvent = {eventType: event.eventType, timestamp: event.timestamp, eventObject: event
-.eventObject};
+            StreamEvent streamEvent = {eventType: event.eventType, timestamp: event.timestamp, eventObject: selectFunc(event)};
             newStreamEventArr[index] = streamEvent;
             index += 1;
         }
-        io:println("eventArr:", newStreamEventArr);
         if (index > 0) {
             nextProcessorPointer1(newStreamEventArr);
         }

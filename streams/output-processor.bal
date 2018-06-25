@@ -1,3 +1,5 @@
+import ballerina/io;
+
 public type OutputProcess object {
     private {
         function (any) outputFunc;

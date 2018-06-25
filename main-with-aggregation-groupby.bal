@@ -29,6 +29,7 @@ type Teacher {
 type TeacherOutput {
     string name;
     int age;
+    int sumAge;
 };
 
 int index = 0;
@@ -40,7 +41,7 @@ TeacherOutput[] globalEmployeeArray = [];
 function main(string... args) {
 
     Teacher[] teachers = [];
-    Teacher t1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
+    Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
     Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Hindu College" };
     teachers[0] = t1;
     teachers[1] = t2;
@@ -68,7 +69,8 @@ function main(string... args) {
 
 //  ------------- Query to be implemented -------------------------------------------------------
 //  from inputStream where inputStream.age > 25
-//  select inputStream.name, inputStream.age
+//  select inputStream.name, inputStream.age, sum (inputStream.age) as sumAge
+//  group by inputStream.name
 //      => (TeacherOutput [] o) {
 //            outputStream.publish(o);
 //      }
@@ -76,27 +78,47 @@ function main(string... args) {
 
 function foo() {
 
-    function (any) outputFunc = (any t) => {
-        TeacherOutput t1 = check <TeacherOutput>t;
-        io:println("FFFFFF", t1);
-        outputStream.publish(t1);
+
+
+    function (TeacherOutput) outputFunc = (TeacherOutput t) => {
+        outputStream.publish(t);
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
 
-    streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
-        (streams:StreamEvent o)  => any {
-            Teacher t = check <Teacher>o.eventObject;
-            TeacherOutput teacherOutput = {name: t.name, age: t.age};
-            return teacherOutput;
+    streams:Sum sumAggregator = new();
+    streams:Aggregator [] aggregatorArr = [];
+    aggregatorArr[0] = sumAggregator;
+
+    streams:Select select = streams:createSelect(outputProcess.process, aggregatorArr,
+        (streams:StreamEvent e) => string {
+            Teacher t = check <Teacher> e.eventObject;
+            return t.name;
+        },
+        (streams:StreamEvent e, (streams:Aggregator [])? aggregatorArr1)  => any {
+            Teacher t = check <Teacher> e.eventObject;
+            match aggregatorArr1 {
+                streams:Aggregator [] var1 => {
+                    streams:Aggregator[] aggregator12 =  var1;
+                    streams:Sum sumAggregator1 = check <streams:Sum> aggregator12[0];
+                    TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge : sumAggregator1.process(t.age, e.eventType) };
+                    return teacherOutput;
+                }
+
+                () => {
+                    int ii = aggregatorArr1[0].process(t.age, e.eventType) but { ()  e1 => 0};
+                    TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge : 0 };
+                    return teacherOutput;
+                }
+            }
         });
 
-    streams:Filter filter = streams:createFilter(simpleSelect.process, (any o) => boolean {
+
+    streams:Filter filter = streams:createFilter(select.process, (any o) => boolean {
             Teacher teacher = check <Teacher> o;
             io:println("Filter: ", teacher);
             return teacher.age > 25;
         });
-
 
     inputStream.subscribe((Teacher t) => {
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(t);
