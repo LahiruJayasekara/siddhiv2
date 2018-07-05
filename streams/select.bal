@@ -6,7 +6,7 @@ public type Select object {
         function (StreamEvent[]) nextProcessorPointer;
         Aggregator [] aggregatorArr;
         (function(StreamEvent o) returns string)? groupbyFunc;
-        function(StreamEvent o, (Aggregator [])?  aggregatorArr1) returns any selectFunc;
+        function(StreamEvent o, Aggregator []  aggregatorArr1) returns any selectFunc;
         map <Aggregator []> aggregatorMap;
     }
 
@@ -14,14 +14,14 @@ public type Select object {
     }
 
     public function process(StreamEvent[] streamEvents) {
-
-        match groupbyFunc {
-            function(StreamEvent o) returns string groupByFunction => {
                 StreamEvent[] newStreamEventArr = [];
                 int index =0;
 
                 foreach event in streamEvents {
-                    string groupbyKey = groupByFunction(event);
+                    string groupbyKey = groupbyFunc but {
+                        (function(StreamEvent o) returns string) groupbyFunction => groupbyFunction(event),
+                        () => "DEFAULT"
+                    };
                     Aggregator [] aggregatorArray;
                     if(aggregatorMap.hasKey(groupbyKey)){
                         aggregatorArray = aggregatorMap[groupbyKey];
@@ -44,29 +44,14 @@ public type Select object {
                 if (index >0) {
                     nextProcessorPointer(newStreamEventArr);
                 }
-            }
-            () => {
-                StreamEvent[] newStreamEventArr = [];
-                int index =0;
-                foreach event in streamEvents {
-                    StreamEvent streamEvent = {eventType: event.eventType, timestamp: event.timestamp,
-                                                                                eventObject: selectFunc(event, null)};
-                    newStreamEventArr[index] = streamEvent;
-                    index +=1;
-                }
 
-                if (index >0) {
-                    nextProcessorPointer(newStreamEventArr);
-                }
-            }
-        }
     }
 };
 
 public function createSelect(function (StreamEvent[]) nextProcPointer,
                                 Aggregator [] aggregatorArr,
                                 (function(StreamEvent o) returns string)? groupbyFunc,
-                                function(StreamEvent o, (Aggregator [])? aggregatorArr1) returns any selectFunc)
+                                function(StreamEvent o, Aggregator [] aggregatorArr1) returns any selectFunc)
         returns Select {
 
     Select select = new(nextProcPointer, aggregatorArr, groupbyFunc, selectFunc);

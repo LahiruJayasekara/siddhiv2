@@ -17,6 +17,7 @@
 import ballerina/runtime;
 import ballerina/io;
 import streams;
+import ballerina/reflect;
 
 type Teacher {
     string name;
@@ -78,13 +79,21 @@ function main(string... args) {
 
 function foo() {
 
+    //forever {
+    //    from inputStream where inputStream.age > 25
+    //    select inputStream.name, inputStream.age
+    //    => (Teacher[] emp) {
+    //        outputStream.publish(emp);
+    //    }
+    //}
 
 
-    function (TeacherOutput) outputFunc = (TeacherOutput t) => {
+    function (TeacherOutput []) outputFunc = (TeacherOutput [] t) => {
         outputStream.publish(t);
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
+
 
     streams:Sum sumAggregator = new();
     streams:Aggregator [] aggregatorArr = [];
@@ -95,37 +104,37 @@ function foo() {
             Teacher t = check <Teacher> e.eventObject;
             return t.name;
         },
-        (streams:StreamEvent e, (streams:Aggregator [])? aggregatorArr1)  => any {
+        (streams:StreamEvent e, streams:Aggregator [] aggregatorArr1)  => any {
             Teacher t = check <Teacher> e.eventObject;
-            match aggregatorArr1 {
-                streams:Aggregator [] var1 => {
-                    streams:Aggregator[] aggregator12 =  var1;
-                    streams:Sum sumAggregator1 = check <streams:Sum> aggregator12[0];
-                    TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge : sumAggregator1.process(t.age, e.eventType) };
-                    return teacherOutput;
-                }
+            streams:Sum sumAggregator1 = check <streams:Sum> aggregatorArr1[0];
+            TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge : sumAggregator1.process(t.age, e.eventType) };
+            return teacherOutput;
+        });
 
-                () => {
-                    int ii = aggregatorArr1[0].process(t.age, e.eventType) but { ()  e1 => 0};
-                    TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge : 0 };
-                    return teacherOutput;
-                }
-            }
+
+    streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
+        (streams:StreamEvent o)  => any {
+            Teacher t = check <Teacher>o.eventObject;
+            TeacherOutput teacherOutput = {name: t.name, age: t.age};
+            return teacherOutput;
         });
 
 
     streams:Filter filter = streams:createFilter(select.process, (any o) => boolean {
             Teacher teacher = check <Teacher> o;
             io:println("Filter: ", teacher);
-            return teacher.age > 25;
+            return teacher.age > getValue();
         });
 
     inputStream.subscribe((Teacher t) => {
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(t);
             io:println("eventArr: ", eventArr);
             filter.process(eventArr);
-            //outputProcess.process(eventArr);
         });
+}
+
+function getValue() returns int  {
+    return 25;
 }
 
 function printTeachers(TeacherOutput e) {

@@ -10,15 +10,17 @@ public type OutputProcess object {
     }
 
     public function process(StreamEvent[] streamEvents) {
-        StreamEvent[] newStreamEventArr = [];
+        any[] newEventArr = [];
         int index = 0;
         foreach event in streamEvents {
-            outputFunc(event.eventObject);
+            newEventArr[index] = event.eventObject;
+
         }
+        outputFunc(newEventArr);
     }
 };
 
 public function createOutputProcess(function (any) outputFunc) returns OutputProcess {
-    OutputProcess outputProcess = new (outputFunc);
+    OutputProcess outputProcess = new(outputFunc);
     return outputProcess;
 }
