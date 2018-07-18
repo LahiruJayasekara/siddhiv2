@@ -1,10 +1,10 @@
 import ballerina/io;
 
 public type Filter object {
-    private {
-        function (StreamEvent[]) nextProcessorPointer;
-        function (any) returns boolean conditionFunc;
-    }
+
+    private function (StreamEvent[]) nextProcessorPointer;
+    private function (any) returns boolean conditionFunc;
+
 
     new(nextProcessorPointer, conditionFunc) {
 

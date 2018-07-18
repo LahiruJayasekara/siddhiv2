@@ -1,15 +1,15 @@
 public type GroupBy object {
-    public {
-        function (StreamEvent[]) nextProcessorPointer;
-        string[] groupByFields;
-        map groupedStreamEvents;
-    }
+
+    public function (StreamEvent[]) nextProcessorPointer;
+    public string[] groupByFields;
+    public map groupedStreamEvents;
+
 
     new (nextProcessorPointer, groupByFields) {
 
     }
 
-    public function performGrouping(StreamEvent[] streamEvents) {
+    public function process(StreamEvent[] streamEvents) {
         if (lengthof groupByFields > 0) {
             foreach streamEvent in streamEvents {
                 string key = generateGroupByKey(streamEvent);

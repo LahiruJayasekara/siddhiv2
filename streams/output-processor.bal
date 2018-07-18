@@ -1,22 +1,17 @@
 import ballerina/io;
 
 public type OutputProcess object {
-    private {
-        function (any) outputFunc;
-    }
 
-    new(outputFunc) {
+    private function (any) outputFunc;
 
+    public new (outputFunc) {
     }
 
     public function process(StreamEvent[] streamEvents) {
-        any[] newEventArr = [];
         int index = 0;
         foreach event in streamEvents {
-            newEventArr[index] = event.eventObject;
-
+            outputFunc(event.eventObject);
         }
-        outputFunc(newEventArr);
     }
 };
 

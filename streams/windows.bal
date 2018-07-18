@@ -1,22 +1,22 @@
 public type EventType "CURRENT"|"EXPIRED"|"ALL"|"RESET";
 
-public type StreamEvent {
+public type StreamEvent record {
     EventType eventType;
     any eventObject;
     int timestamp;
 };
 
 public type LengthWindow object {
-    public {
-        int counter;
-        int size;
-        EventType eventType = "ALL";
-    }
 
-    private {
-        StreamEvent[] events = [];
-        function (StreamEvent[]) nextProcessorPointer;
-    }
+    private int counter;
+    private int size;
+    private EventType eventType = "ALL";
+
+
+
+    private StreamEvent[] events = [];
+    private function (StreamEvent[]) nextProcessorPointer;
+
 
     new(nextProcessorPointer, size, eventType) {
 
@@ -70,10 +70,10 @@ public function lengthWindow(int length, EventType eventType, function (StreamEv
 
 
 type QNode object {
-    public {
-        any data;
-        QNode? nextNode;
-    }
+
+    public any data;
+    public QNode? nextNode;
+
 
     new(data) {
 
@@ -81,10 +81,9 @@ type QNode object {
 };
 
 type Queue object {
-    private {
-        QNode? front;
-        QNode? rear;
-    }
+
+    private QNode? front;
+    private QNode? rear;
 
     public function isEmpty() returns boolean {
         match front {
@@ -177,16 +176,15 @@ type Queue object {
 };
 
 public type TimeWindow object {
-    public {
-        int counter;
-        int timeLength;
-        EventType eventType = "ALL";
-    }
 
-    private {
-        Queue eventQueue;
-        function (StreamEvent[]) nextProcessorPointer;
-    }
+    public int counter;
+    public int timeLength;
+    public EventType eventType = "ALL";
+
+
+    private Queue eventQueue;
+    private function (StreamEvent[]) nextProcessorPointer;
+
 
     new(timeLength, eventType, nextProcessorPointer) {
         eventQueue = new;

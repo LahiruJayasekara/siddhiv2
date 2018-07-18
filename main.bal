@@ -18,7 +18,7 @@ import ballerina/runtime;
 import ballerina/io;
 import streams;
 
-type Teacher {
+type Teacher record {
     string name;
     int age;
     string status;
@@ -26,7 +26,7 @@ type Teacher {
     string school;
 };
 
-type TeacherOutput {
+type TeacherOutput record {
     string name;
     int age;
 };
@@ -78,7 +78,6 @@ function foo() {
 
     function (any) outputFunc = (any t) => {
         TeacherOutput t1 = check <TeacherOutput>t;
-        io:println("FFFFFF", t1);
         outputStream.publish(t1);
     };
 
@@ -93,16 +92,13 @@ function foo() {
 
     streams:Filter filter = streams:createFilter(simpleSelect.process, (any o) => boolean {
             Teacher teacher = check <Teacher> o;
-            io:println("Filter: ", teacher);
             return teacher.age > 25;
         });
 
 
     inputStream.subscribe((Teacher t) => {
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(t);
-            io:println("eventArr: ", eventArr);
             filter.process(eventArr);
-            //outputProcess.process(eventArr);
         });
 }
 

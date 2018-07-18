@@ -2,13 +2,13 @@ import ballerina/io;
 
 public type Select object {
 
-    private {
-        function (StreamEvent[]) nextProcessorPointer;
-        Aggregator [] aggregatorArr;
-        (function(StreamEvent o) returns string)? groupbyFunc;
-        function(StreamEvent o, Aggregator []  aggregatorArr1) returns any selectFunc;
-        map <Aggregator []> aggregatorMap;
-    }
+
+    private function (StreamEvent[]) nextProcessorPointer;
+    private Aggregator [] aggregatorArr;
+    private (function(StreamEvent o) returns string)? groupbyFunc;
+    private function(StreamEvent o, Aggregator []  aggregatorArr1) returns any selectFunc;
+    private map <Aggregator []> aggregatorMap;
+
 
     new(nextProcessorPointer, aggregatorArr, groupbyFunc, selectFunc) {
     }
@@ -22,9 +22,15 @@ public type Select object {
                         (function(StreamEvent o) returns string) groupbyFunction => groupbyFunction(event),
                         () => "DEFAULT"
                     };
-                    Aggregator [] aggregatorArray;
-                    if(aggregatorMap.hasKey(groupbyKey)){
-                        aggregatorArray = aggregatorMap[groupbyKey];
+                    Aggregator[] aggregatorArray;
+                    if(aggregatorMap.hasKey(groupbyKey)) {
+                        match(aggregatorMap[groupbyKey]) {
+                            Aggregator[] aggregators => {
+                                aggregatorArray = aggregators;
+                            }
+                            () => {
+                            }
+                        }
                     } else {
                         int i = 0;
                         foreach aggregator in aggregatorArr {

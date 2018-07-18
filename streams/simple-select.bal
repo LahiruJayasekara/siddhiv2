@@ -1,10 +1,10 @@
 import ballerina/io;
 
 public type SimpleSelect object {
-    private {
-        function (StreamEvent[]) nextProcessorPointer1;
-        function(any o) returns any selectFunc;
-    }
+
+    private function (StreamEvent[]) nextProcessorPointer1;
+    private function(any o) returns any selectFunc;
+
 
     new(nextProcessorPointer1, selectFunc) {
     }

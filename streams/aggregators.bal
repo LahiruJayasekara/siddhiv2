@@ -1,9 +1,8 @@
 import ballerina/reflect;
 
 public type Sum object {
-    public {
-        int sumValue = 0;
-    }
+
+    public int sumValue = 0;
 
     public new() {
 
@@ -32,9 +31,6 @@ public function createSumAggregator() returns Sum {
     return sumAggregator;
 }
 
-
-
-
 public type Aggregator object {
 
     public new () {
@@ -49,6 +45,5 @@ public type Aggregator object {
     public function process(int value, EventType eventType) returns int {
         return 10;
     }
-
 };
 
