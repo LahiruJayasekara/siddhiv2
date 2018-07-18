@@ -45,9 +45,9 @@ function main(string... args) {
 
     InputRecord[] records = [];
     records[0] = { id: "ANX_1", category: "ANX", intVal: 2, floatVal: 2.5 };
-    records[1] = { id: "BMX_1", category: "BMX", intVal: 1, floatVal: 1.5 };
-    records[2] = { id: "ANX_2", category: "ANX", intVal: 4, floatVal: 4.5 };
-    records[3] = { id: "BMX_2", category: "BMX", intVal: 3, floatVal: 3.5 };
+    //records[1] = { id: "BMX_1", category: "BMX", intVal: 1, floatVal: 1.5 };
+    //records[2] = { id: "ANX_2", category: "ANX", intVal: 4, floatVal: 4.5 };
+    //records[3] = { id: "BMX_2", category: "BMX", intVal: 3, floatVal: 3.5 };
 
     streamFunc();
 
@@ -98,8 +98,8 @@ function streamFunc() {
                 iSum: check <int>sumAggregator1.process(i.intVal, e.eventType),
                 fSum: check <float>sumAggregator1.process(i.floatVal, e.eventType),
                 count: check <int>countAggregator1.process((), e.eventType),
-                iAvg: check <float>countAggregator1.process(i.intVal, e.eventType),
-                fAvg: check <float>countAggregator1.process(i.floatVal, e.eventType)
+                iAvg: check <float>avgAggregator1.process(i.intVal, e.eventType),
+                fAvg: check <float>avgAggregator1.process(i.floatVal, e.eventType)
             };
             return o;
         }
