@@ -19,7 +19,7 @@ import ballerina/io;
 import streams;
 import ballerina/reflect;
 
-type Teacher {
+type Teacher record {
     string name;
     int age;
     string status;
@@ -27,7 +27,7 @@ type Teacher {
     string school;
 };
 
-type TeacherOutput {
+type TeacherOutput record {
     string name;
     int age;
     int sumAge;

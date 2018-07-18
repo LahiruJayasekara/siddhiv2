@@ -18,7 +18,7 @@ import ballerina/runtime;
 import ballerina/io;
 import streams;
 
-type Teacher {
+type Teacher record {
     string name;
     int age;
     string status;
@@ -26,7 +26,7 @@ type Teacher {
     string school;
 };
 
-type TeacherOutput {
+type TeacherOutput record {
     string name;
     int age;
     int sumAge;
@@ -76,8 +76,6 @@ function main(string... args) {
 //
 
 function foo() {
-
-
 
     function (TeacherOutput) outputFunc = (TeacherOutput t) => {
         outputStream.publish(t);
