@@ -45,6 +45,56 @@ public type Sum object {
 
 };
 
+public type Average object {
+
+    public int count = 0;
+    public float sum = 0.0;
+
+    public new() {
+
+    }
+
+    public function process(any value, EventType eventType) returns any {
+        match value {
+            int i => {
+                if (eventType == "CURRENT") {
+                    sum += i;
+                    count++;
+                } else if (eventType == "EXPIRED"){
+                    sum -= i;
+                    count--;
+                } else if (eventType == "RESET"){
+                    sum = 0;
+                    count = 0;
+                }
+            }
+            float f => {
+                if (eventType == "CURRENT") {
+                    sum += f;
+                    count++;
+                } else if (eventType == "EXPIRED"){
+                    sum -= f;
+                    count--;
+                } else if (eventType == "RESET"){
+                    sum = 0.0;
+                    count = 0;
+                }
+            }
+            any a => {
+                error e = { message : "Unsupported attribute type found" };
+                return e;
+            }
+        }
+        return (count > 0) ? (sum/count) : 0.0;
+    }
+
+    public function clone() returns Aggregator {
+        Average avgAggregator = new ();
+        return avgAggregator;
+    }
+
+};
+
 public type Count object {
 
     public int count = 0;
