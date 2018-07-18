@@ -31,6 +31,7 @@ type TeacherOutput record {
     string name;
     int age;
     int sumAge;
+    int count;
 };
 
 int index = 0;
@@ -70,7 +71,7 @@ function main(string... args) {
 
 //  ------------- Query to be implemented -------------------------------------------------------
 //  from inputStream where inputStream.age > 25
-//  select inputStream.name, inputStream.age, sum (inputStream.age) as sumAge
+//  select inputStream.name, inputStream.age, sum (inputStream.age) as sumAge, count() as count
 //  group by inputStream.name
 //      => (TeacherOutput [] o) {
 //            outputStream.publish(o);
@@ -96,8 +97,10 @@ function foo() {
 
 
     streams:Sum sumAggregator = new();
+    streams:Count countAggregator = new();
     streams:Aggregator [] aggregatorArr = [];
     aggregatorArr[0] = sumAggregator;
+    aggregatorArr[1] = countAggregator;
 
     streams:Select select = streams:createSelect(outputProcess.process, aggregatorArr,
         (streams:StreamEvent e) => string {
@@ -107,7 +110,13 @@ function foo() {
         (streams:StreamEvent e, streams:Aggregator [] aggregatorArr1)  => any {
             Teacher t = check <Teacher> e.eventObject;
             streams:Sum sumAggregator1 = check <streams:Sum> aggregatorArr1[0];
-            TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge : sumAggregator1.process(t.age, e.eventType) };
+            streams:Count countAggregator1 = check <streams:Count> aggregatorArr1[1];
+            TeacherOutput teacherOutput = {
+                name: t.name,
+                age: t.age,
+                sumAge: check<int> sumAggregator1.process(t.age, e.eventType),
+                count: check<int> countAggregator1.process((), e.eventType)
+            };
             return teacherOutput;
         });
 
