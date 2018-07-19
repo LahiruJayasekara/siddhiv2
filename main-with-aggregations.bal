@@ -34,6 +34,7 @@ type OutputRecord record {
     int count;
     float iAvg;
     float fAvg;
+    int distCount;
 };
 
 stream<InputRecord> inputStream;
@@ -75,6 +76,7 @@ function streamFunc() {
     streams:Count countAggregator = new();
     streams:Average iAvgAggregator = new();
     streams:Average fAvgAggregator = new();
+    streams:DistinctCount dCountAggregator = new();
 
     streams:Aggregator[] aggregators = [];
     aggregators[0] = iSumAggregator;
@@ -82,6 +84,7 @@ function streamFunc() {
     aggregators[2] = countAggregator;
     aggregators[3] = iAvgAggregator;
     aggregators[4] = fAvgAggregator;
+    aggregators[5] = dCountAggregator;
 
     // create selector
     streams:Select select = streams:createSelect(
@@ -98,6 +101,7 @@ function streamFunc() {
             streams:Count countAggregator1 = check <streams:Count>aggregatorArray[2];
             streams:Average iAvgAggregator1 = check <streams:Average>aggregatorArray[3];
             streams:Average fAvgAggregator1 = check <streams:Average>aggregatorArray[4];
+            streams:DistinctCount dCountAggregator1 = check <streams:DistinctCount>aggregatorArray[5];
             OutputRecord o = {
                 id: i.id,
                 category: i.category,
@@ -105,7 +109,8 @@ function streamFunc() {
                 fSum: check <float>fSumAggregator1.process(i.floatVal, e.eventType),
                 count: check <int>countAggregator1.process((), e.eventType),
                 iAvg: check <float>iAvgAggregator1.process(i.intVal, e.eventType),
-                fAvg: check <float>fAvgAggregator1.process(i.floatVal, e.eventType)
+                fAvg: check <float>fAvgAggregator1.process(i.floatVal, e.eventType),
+                distCount: check <int>dCountAggregator1.process(i.id, e.eventType)
             };
             return o;
         }
