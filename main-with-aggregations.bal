@@ -45,9 +45,9 @@ function main(string... args) {
 
     InputRecord[] records = [];
     records[0] = { id: "ANX_1", category: "ANX", intVal: 2, floatVal: 2.5 };
-    //records[1] = { id: "BMX_1", category: "BMX", intVal: 1, floatVal: 1.5 };
-    //records[2] = { id: "ANX_2", category: "ANX", intVal: 4, floatVal: 4.5 };
-    //records[3] = { id: "BMX_2", category: "BMX", intVal: 3, floatVal: 3.5 };
+    records[1] = { id: "BMX_1", category: "BMX", intVal: 1, floatVal: 1.5 };
+    records[2] = { id: "ANX_2", category: "ANX", intVal: 4, floatVal: 4.5 };
+    records[3] = { id: "BMX_2", category: "BMX", intVal: 3, floatVal: 3.5 };
 
     streamFunc();
 
@@ -70,14 +70,18 @@ function streamFunc() {
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
 
     // create aggregators
-    streams:Sum sumAggregator = new();
+    streams:Sum iSumAggregator = new();
+    streams:Sum fSumAggregator = new();
     streams:Count countAggregator = new();
-    streams:Average avgAggregator = new();
+    streams:Average iAvgAggregator = new();
+    streams:Average fAvgAggregator = new();
 
     streams:Aggregator[] aggregators = [];
-    aggregators[0] = sumAggregator;
-    aggregators[1] = countAggregator;
-    aggregators[2] = avgAggregator;
+    aggregators[0] = iSumAggregator;
+    aggregators[1] = fSumAggregator;
+    aggregators[2] = countAggregator;
+    aggregators[3] = iAvgAggregator;
+    aggregators[4] = fAvgAggregator;
 
     // create selector
     streams:Select select = streams:createSelect(
@@ -89,17 +93,19 @@ function streamFunc() {
         },
         (streams:StreamEvent e, streams:Aggregator[] aggregatorArray) => any {
             InputRecord i = check <InputRecord> e.eventObject;
-            streams:Sum sumAggregator1 = check <streams:Sum>aggregatorArray[0];
-            streams:Count countAggregator1 = check <streams:Count>aggregatorArray[1];
-            streams:Average avgAggregator1 = check <streams:Average>aggregatorArray[2];
+            streams:Sum iSumAggregator1 = check <streams:Sum>aggregatorArray[0];
+            streams:Sum fSumAggregator1 = check <streams:Sum>aggregatorArray[1];
+            streams:Count countAggregator1 = check <streams:Count>aggregatorArray[2];
+            streams:Average iAvgAggregator1 = check <streams:Average>aggregatorArray[3];
+            streams:Average fAvgAggregator1 = check <streams:Average>aggregatorArray[4];
             OutputRecord o = {
                 id: i.id,
                 category: i.category,
-                iSum: check <int>sumAggregator1.process(i.intVal, e.eventType),
-                fSum: check <float>sumAggregator1.process(i.floatVal, e.eventType),
+                iSum: check <int>iSumAggregator1.process(i.intVal, e.eventType),
+                fSum: check <float>fSumAggregator1.process(i.floatVal, e.eventType),
                 count: check <int>countAggregator1.process((), e.eventType),
-                iAvg: check <float>avgAggregator1.process(i.intVal, e.eventType),
-                fAvg: check <float>avgAggregator1.process(i.floatVal, e.eventType)
+                iAvg: check <float>iAvgAggregator1.process(i.intVal, e.eventType),
+                fAvg: check <float>fAvgAggregator1.process(i.floatVal, e.eventType)
             };
             return o;
         }
