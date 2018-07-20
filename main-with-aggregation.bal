@@ -88,7 +88,8 @@ function foo() {
     streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
         (streams:StreamEvent e)  => any {
             Teacher t = check <Teacher> e.eventObject;
-            TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge:sumAggregator.process(t.age, e.eventType) };
+            TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge: check <int>sumAggregator.process(t.age, e
+                .eventType) };
             return teacherOutput;
         });
 

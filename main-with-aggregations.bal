@@ -35,6 +35,7 @@ type OutputRecord record {
     float iAvg;
     float fAvg;
     int distCount;
+    float stdDev;
 };
 
 stream<InputRecord> inputStream;
@@ -49,6 +50,7 @@ function main(string... args) {
     records[1] = { id: "BMX_1", category: "BMX", intVal: 1, floatVal: 1.5 };
     records[2] = { id: "ANX_2", category: "ANX", intVal: 4, floatVal: 4.5 };
     records[3] = { id: "BMX_2", category: "BMX", intVal: 3, floatVal: 3.5 };
+    records[4] = { id: "BMX_3", category: "BMX", intVal: 3, floatVal: 8.9 };
 
     streamFunc();
 
@@ -61,7 +63,7 @@ function main(string... args) {
 }
 
 function streamFunc() {
-    
+
     function (OutputRecord[]) outputFunc = (OutputRecord[] o) => {
         io:println(o);
         outputStream.publish(o);
@@ -77,6 +79,7 @@ function streamFunc() {
     streams:Average iAvgAggregator = new();
     streams:Average fAvgAggregator = new();
     streams:DistinctCount dCountAggregator = new();
+    streams:StdDev stdDevAggregator = new();
 
     streams:Aggregator[] aggregators = [];
     aggregators[0] = iSumAggregator;
@@ -84,7 +87,9 @@ function streamFunc() {
     aggregators[2] = countAggregator;
     aggregators[3] = iAvgAggregator;
     aggregators[4] = fAvgAggregator;
+    aggregators[4] = fAvgAggregator;
     aggregators[5] = dCountAggregator;
+    aggregators[6] = stdDevAggregator;
 
     // create selector
     streams:Select select = streams:createSelect(
@@ -102,6 +107,7 @@ function streamFunc() {
             streams:Average iAvgAggregator1 = check <streams:Average>aggregatorArray[3];
             streams:Average fAvgAggregator1 = check <streams:Average>aggregatorArray[4];
             streams:DistinctCount dCountAggregator1 = check <streams:DistinctCount>aggregatorArray[5];
+            streams:StdDev stdDevAggregator1 = check <streams:StdDev>aggregatorArray[6];
             OutputRecord o = {
                 id: i.id,
                 category: i.category,
@@ -110,7 +116,8 @@ function streamFunc() {
                 count: check <int>countAggregator1.process((), e.eventType),
                 iAvg: check <float>iAvgAggregator1.process(i.intVal, e.eventType),
                 fAvg: check <float>fAvgAggregator1.process(i.floatVal, e.eventType),
-                distCount: check <int>dCountAggregator1.process(i.id, e.eventType)
+                distCount: check <int>dCountAggregator1.process(i.id, e.eventType),
+                stdDev: check <float>stdDevAggregator1.process(i.floatVal, e.eventType)
             };
             return o;
         }

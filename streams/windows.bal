@@ -1,3 +1,5 @@
+import collections;
+
 public type EventType "CURRENT"|"EXPIRED"|"ALL"|"RESET";
 
 public type StreamEvent record {
@@ -68,113 +70,6 @@ public function lengthWindow(int length, EventType eventType, function (StreamEv
     return lengthWindow1;
 }
 
-
-type QNode object {
-
-    public any data;
-    public QNode? nextNode;
-
-
-    new(data) {
-
-    }
-};
-
-type Queue object {
-
-    private QNode? front;
-    private QNode? rear;
-
-    public function isEmpty() returns boolean {
-        match front {
-            QNode value => {
-                return false;
-            }
-            () => {
-                return true;
-            }
-        }
-    }
-
-    public function peekRear() returns any {
-        match rear {
-            QNode value => {
-                return value.data;
-            }
-            () => {
-                return ();
-            }
-        }
-    }
-
-    public function peekFront() returns any {
-        match front {
-            QNode value => {
-                return value.data;
-            }
-            () => {
-                return ();
-            }
-        }
-    }
-
-    public function enqueue(any data) {
-        QNode temp = new(data);
-        match rear {
-            QNode value => {
-                value.nextNode = temp;
-                rear = temp;
-            }
-            () => {
-                rear = temp;
-                front = rear;
-            }
-        }
-    }
-
-    public function dequeue() returns any? {
-        match front {
-            QNode value => {
-                front = value.nextNode;
-                match front {
-                    QNode nextValue => {
-                        // do nothing
-                    }
-                    () => {
-                        rear = ();
-                    }
-                }
-                return value.data;
-            }
-            () => {
-                return ();
-            }
-        }
-    }
-
-    public function asArray() returns any[] {
-        any[] anyArray = [];
-        QNode? temp;
-        int i;
-        if (!isEmpty()) {
-            match front {
-                QNode value => {
-                    temp = value;
-                    while (temp != ()) {
-                        anyArray[i] = temp.data;
-                        i = i + 1;
-                        temp = temp.nextNode;
-                    }
-                }
-                () => {
-
-                }
-            }
-        }
-        return anyArray;
-    }
-};
-
 public type TimeWindow object {
 
     public int counter;
@@ -182,7 +77,7 @@ public type TimeWindow object {
     public EventType eventType = "ALL";
 
 
-    private Queue eventQueue;
+    private collections:Queue eventQueue;
     private function (StreamEvent[]) nextProcessorPointer;
 
 

@@ -1,5 +1,7 @@
 import ballerina/reflect;
 import ballerina/crypto;
+import ballerina/math;
+import collections;
 
 public type Aggregator object {
 
@@ -181,6 +183,132 @@ public type DistinctCount object {
         DistinctCount distinctCountAggregator = new ();
         return distinctCountAggregator;
     }
+};
+
+
+public type Max object {
+
+    public collections:Queue maxQueue;
+    public int iMax = 0;
+    public float fMax = 0.0;
+
+    public new() {
+
+    }
+
+    public function process(any value, EventType eventType) returns any {
+        match value {
+            int i => {
+                if (eventType == "CURRENT") {
+                    iMax = i;
+                } else if (eventType == "EXPIRED"){
+                    iMax = i;
+                } else if (eventType == "RESET"){
+                    iMax = 0;
+                }
+                return iMax;
+            }
+            float f => {
+                if (eventType == "CURRENT") {
+                    fMax = f;
+                } else if (eventType == "EXPIRED"){
+                    fMax = f;
+                } else if (eventType == "RESET"){
+                    fMax = 0.0;
+                }
+                return fMax;
+            }
+            any a => {
+                error e = { message : "Unsupported attribute type found" };
+                return e;
+            }
+        }
+    }
+
+    public function clone() returns Aggregator {
+        Max maxAggregator = new ();
+        return maxAggregator;
+    }
+
+};
+
+
+
+public type StdDev object {
+
+    public float mean = 0.0;
+    public float stdDeviation = 0.0;
+    public float sum = 0.0;
+    public int count = 0;
+
+    public new() {
+
+    }
+
+    public function process(any value, EventType eventType) returns any {
+        float fVal;
+        match value {
+            int i => {
+                fVal = <float> i;
+            }
+            float f => {
+                fVal = f;
+            }
+            any a => {
+                error e = { message: "Unsupported attribute type found" };
+                return e;
+            }
+        }
+
+        if (eventType == "CURRENT") {
+            // See here for the algorithm: http://www.johndcook.com/blog/standard_deviation/
+            count++;
+            if (count == 0) {
+                return ();
+            } else if (count == 1) {
+                sum = fVal;
+                mean = fVal;
+                stdDeviation = 0.0;
+                return 0.0;
+            } else {
+                float oldMean = mean;
+                sum += fVal;
+                mean = sum / count;
+                stdDeviation += (fVal - oldMean) * (fVal - mean);
+                return math:sqrt(stdDeviation / count);
+            }
+        } else if (eventType == "EXPIRED") {
+            count--;
+            if (count == 0) {
+                sum = 0.0;
+                mean = 0.0;
+                stdDeviation = 0.0;
+                return ();
+            } else if (count == 1) {
+                return 0.0;
+            } else {
+                float oldMean = mean;
+                sum -= fVal;
+                mean = sum / count;
+                stdDeviation -= (fVal - oldMean) * (fVal - mean);
+                return math:sqrt(stdDeviation / count);
+            }
+        } else if (eventType == "RESET") {
+            mean = 0.0;
+            stdDeviation = 0.0;
+            sum = 0.0;
+            count = 0;
+            return 0.0;
+        } else {
+            return ();
+        }
+    }
+
+    public function clone() returns Aggregator {
+        StdDev stdDevAggregator = new ();
+        return stdDevAggregator;
+    }
+
 };
 
 public function createSumAggregator() returns Sum {
