@@ -313,8 +313,8 @@ public type StdDev object {
 
 public type MaxForever object {
 
-    public int iMax = 0;
-    public float fMax = 0.0;
+    public int? iMax = ();
+    public float? fMax = ();
 
     public new() {
 
@@ -324,13 +324,27 @@ public type MaxForever object {
         match value {
             int i => {
                 if (eventType == "CURRENT" || eventType == "EXPIRED") {
-                    iMax = (iMax < i) ? i : iMax;
+                    match iMax {
+                        int max => {
+                            iMax = (max < i) ? i : max;
+                        }
+                        () => {
+                            iMax = i;
+                        }
+                    }
                 }
                 return iMax;
             }
             float f => {
                 if (eventType == "CURRENT" || eventType == "EXPIRED") {
-                    fMax = (fMax < f) ? f : fMax;
+                    match fMax {
+                        float max => {
+                            fMax = (max < f) ? f : max;
+                        }
+                        () => {
+                            fMax = f;
+                        }
+                    }
                 }
                 return fMax;
             }
