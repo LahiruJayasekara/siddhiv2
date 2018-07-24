@@ -311,6 +311,44 @@ public type StdDev object {
 
 };
 
+public type MaxForever object {
+
+    public int iMax = 0;
+    public float fMax = 0.0;
+
+    public new() {
+
+    }
+
+    public function process(any value, EventType eventType) returns any {
+        match value {
+            int i => {
+                if (eventType == "CURRENT" || eventType == "EXPIRED") {
+                    iMax = (iMax < i) ? i : iMax;
+                }
+                return iMax;
+            }
+            float f => {
+                if (eventType == "CURRENT" || eventType == "EXPIRED") {
+                    fMax = (fMax < f) ? f : fMax;
+                }
+                return fMax;
+            }
+            any a => {
+                error e = { message : "Unsupported attribute type found" };
+                return e;
+            }
+        }
+    }
+
+    public function clone() returns Aggregator {
+        MaxForever maxForeverAggregator = new ();
+        return maxForeverAggregator;
+    }
+
+};
+
+
 public function createSumAggregator() returns Sum {
     Sum sumAggregator = new ();
     return sumAggregator;

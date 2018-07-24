@@ -36,6 +36,8 @@ type OutputRecord record {
     float fAvg;
     int distCount;
     float stdDev;
+    int iMaxForever;
+    float fMaxForever;
 };
 
 stream<InputRecord> inputStream;
@@ -46,9 +48,9 @@ OutputRecord[] outputDataArray = [];
 function main(string... args) {
 
     InputRecord[] records = [];
-    records[0] = { id: "ANX_1", category: "ANX", intVal: 2, floatVal: 2.5 };
-    records[1] = { id: "BMX_1", category: "BMX", intVal: 1, floatVal: 1.5 };
-    records[2] = { id: "ANX_2", category: "ANX", intVal: 4, floatVal: 4.5 };
+    records[0] = { id: "ANX_2", category: "ANX", intVal: 4, floatVal: 4.5 };
+    records[1] = { id: "ANX_1", category: "ANX", intVal: 2, floatVal: 2.5 };
+    records[2] = { id: "BMX_1", category: "BMX", intVal: 1, floatVal: 1.5 };
     records[3] = { id: "BMX_2", category: "BMX", intVal: 3, floatVal: 3.5 };
     records[4] = { id: "BMX_3", category: "BMX", intVal: 3, floatVal: 8.9 };
 
@@ -80,6 +82,8 @@ function streamFunc() {
     streams:Average fAvgAggregator = new();
     streams:DistinctCount dCountAggregator = new();
     streams:StdDev stdDevAggregator = new();
+    streams:MaxForever iMaxForeverAggregator = new();
+    streams:MaxForever fMaxForeverAggregator = new();
 
     streams:Aggregator[] aggregators = [];
     aggregators[0] = iSumAggregator;
@@ -90,6 +94,8 @@ function streamFunc() {
     aggregators[4] = fAvgAggregator;
     aggregators[5] = dCountAggregator;
     aggregators[6] = stdDevAggregator;
+    aggregators[7] = iMaxForeverAggregator;
+    aggregators[8] = fMaxForeverAggregator;
 
     // create selector
     streams:Select select = streams:createSelect(
@@ -108,6 +114,8 @@ function streamFunc() {
             streams:Average fAvgAggregator1 = check <streams:Average>aggregatorArray[4];
             streams:DistinctCount dCountAggregator1 = check <streams:DistinctCount>aggregatorArray[5];
             streams:StdDev stdDevAggregator1 = check <streams:StdDev>aggregatorArray[6];
+            streams:MaxForever iMaxForeverAggregator1 = check <streams:MaxForever>aggregatorArray[7];
+            streams:MaxForever fMaxForeverAggregator1 = check <streams:MaxForever>aggregatorArray[8];
             OutputRecord o = {
                 id: i.id,
                 category: i.category,
@@ -117,7 +125,9 @@ function streamFunc() {
                 iAvg: check <float>iAvgAggregator1.process(i.intVal, e.eventType),
                 fAvg: check <float>fAvgAggregator1.process(i.floatVal, e.eventType),
                 distCount: check <int>dCountAggregator1.process(i.id, e.eventType),
-                stdDev: check <float>stdDevAggregator1.process(i.floatVal, e.eventType)
+                stdDev: check <float>stdDevAggregator1.process(i.floatVal, e.eventType),
+                iMaxForever: check <int>iMaxForeverAggregator1.process(i.intVal, e.eventType),
+                fMaxForever: check <float>fMaxForeverAggregator1.process(i.floatVal, e.eventType)
             };
             return o;
         }
