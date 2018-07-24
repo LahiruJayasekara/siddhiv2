@@ -348,6 +348,57 @@ public type MaxForever object {
 
 };
 
+public type MinForever object {
+
+    public int? iMin = ();
+    public float? fMin = ();
+
+    public new() {
+
+    }
+
+    public function process(any value, EventType eventType) returns any {
+        match value {
+            int i => {
+                if (eventType == "CURRENT" || eventType == "EXPIRED") {
+                    match iMin {
+                        int min => {
+                            iMin = (min > i) ? i : min;
+                        }
+                        () => {
+                            iMin = i;
+                        }
+                    }
+                }
+                return iMin;
+            }
+            float f => {
+                if (eventType == "CURRENT" || eventType == "EXPIRED") {
+                    match fMin {
+                        float min => {
+                            fMin = (min > f) ? f : min;
+                        }
+                        () => {
+                            fMin = f;
+                        }
+                    }
+                }
+                return fMin;
+            }
+            any a => {
+                error e = { message : "Unsupported attribute type found" };
+                return e;
+            }
+        }
+    }
+
+    public function clone() returns Aggregator {
+        MinForever minForeverAggregator = new ();
+        return minForeverAggregator;
+    }
+
+};
+
 
 public function createSumAggregator() returns Sum {
     Sum sumAggregator = new ();

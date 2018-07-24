@@ -38,6 +38,8 @@ type OutputRecord record {
     float stdDev;
     int iMaxForever;
     float fMaxForever;
+    int iMinForever;
+    float fMinForever;
 };
 
 stream<InputRecord> inputStream;
@@ -84,6 +86,8 @@ function streamFunc() {
     streams:StdDev stdDevAggregator = new();
     streams:MaxForever iMaxForeverAggregator = new();
     streams:MaxForever fMaxForeverAggregator = new();
+    streams:MinForever iMinForeverAggregator = new();
+    streams:MinForever fMinForeverAggregator = new();
 
     streams:Aggregator[] aggregators = [];
     aggregators[0] = iSumAggregator;
@@ -96,6 +100,8 @@ function streamFunc() {
     aggregators[6] = stdDevAggregator;
     aggregators[7] = iMaxForeverAggregator;
     aggregators[8] = fMaxForeverAggregator;
+    aggregators[9] = iMinForeverAggregator;
+    aggregators[10] = fMinForeverAggregator;
 
     // create selector
     streams:Select select = streams:createSelect(
@@ -116,6 +122,8 @@ function streamFunc() {
             streams:StdDev stdDevAggregator1 = check <streams:StdDev>aggregatorArray[6];
             streams:MaxForever iMaxForeverAggregator1 = check <streams:MaxForever>aggregatorArray[7];
             streams:MaxForever fMaxForeverAggregator1 = check <streams:MaxForever>aggregatorArray[8];
+            streams:MinForever iMinForeverAggregator1 = check <streams:MinForever>aggregatorArray[9];
+            streams:MinForever fMinForeverAggregator1 = check <streams:MinForever>aggregatorArray[10];
             OutputRecord o = {
                 id: i.id,
                 category: i.category,
@@ -127,7 +135,9 @@ function streamFunc() {
                 distCount: check <int>dCountAggregator1.process(i.id, e.eventType),
                 stdDev: check <float>stdDevAggregator1.process(i.floatVal, e.eventType),
                 iMaxForever: check <int>iMaxForeverAggregator1.process(i.intVal, e.eventType),
-                fMaxForever: check <float>fMaxForeverAggregator1.process(i.floatVal, e.eventType)
+                fMaxForever: check <float>fMaxForeverAggregator1.process(i.floatVal, e.eventType),
+                iMinForever: check <int>iMinForeverAggregator1.process(i.intVal, e.eventType),
+                fMinForever: check <float>fMinForeverAggregator1.process(i.floatVal, e.eventType)
             };
             return o;
         }
