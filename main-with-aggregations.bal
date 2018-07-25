@@ -40,6 +40,10 @@ type OutputRecord record {
     float fMaxForever;
     int iMinForever;
     float fMinForever;
+    int iMax;
+    float fMax;
+    int iMin;
+    float fMin;
 };
 
 stream<InputRecord> inputStream;
@@ -88,6 +92,10 @@ function streamFunc() {
     streams:MaxForever fMaxForeverAggregator = new();
     streams:MinForever iMinForeverAggregator = new();
     streams:MinForever fMinForeverAggregator = new();
+    streams:Max iMaxAggregator = new();
+    streams:Max fMaxAggregator = new();
+    streams:Min iMinAggregator = new();
+    streams:Min fMinAggregator = new();
 
     streams:Aggregator[] aggregators = [];
     aggregators[0] = iSumAggregator;
@@ -102,6 +110,10 @@ function streamFunc() {
     aggregators[8] = fMaxForeverAggregator;
     aggregators[9] = iMinForeverAggregator;
     aggregators[10] = fMinForeverAggregator;
+    aggregators[11] = iMaxAggregator;
+    aggregators[12] = fMaxAggregator;
+    aggregators[13] = iMinAggregator;
+    aggregators[14] = fMinAggregator;
 
     // create selector
     streams:Select select = streams:createSelect(
@@ -124,6 +136,10 @@ function streamFunc() {
             streams:MaxForever fMaxForeverAggregator1 = check <streams:MaxForever>aggregatorArray[8];
             streams:MinForever iMinForeverAggregator1 = check <streams:MinForever>aggregatorArray[9];
             streams:MinForever fMinForeverAggregator1 = check <streams:MinForever>aggregatorArray[10];
+            streams:Max iMaxAggregator1 = check <streams:Max>aggregatorArray[11];
+            streams:Max fMaxAggregator1 = check <streams:Max>aggregatorArray[12];
+            streams:Min iMinAggregator1 = check <streams:Min>aggregatorArray[13];
+            streams:Min fMinAggregator1 = check <streams:Min>aggregatorArray[14];
             OutputRecord o = {
                 id: i.id,
                 category: i.category,
@@ -137,7 +153,11 @@ function streamFunc() {
                 iMaxForever: check <int>iMaxForeverAggregator1.process(i.intVal, e.eventType),
                 fMaxForever: check <float>fMaxForeverAggregator1.process(i.floatVal, e.eventType),
                 iMinForever: check <int>iMinForeverAggregator1.process(i.intVal, e.eventType),
-                fMinForever: check <float>fMinForeverAggregator1.process(i.floatVal, e.eventType)
+                fMinForever: check <float>fMinForeverAggregator1.process(i.floatVal, e.eventType),
+                iMax: check <int>iMaxAggregator1.process(i.intVal, e.eventType),
+                fMax: check <float>fMaxAggregator1.process(i.floatVal, e.eventType),
+                iMin: check <int>iMinAggregator1.process(i.intVal, e.eventType),
+                fMin: check <float>fMinAggregator1.process(i.floatVal, e.eventType)
             };
             return o;
         }

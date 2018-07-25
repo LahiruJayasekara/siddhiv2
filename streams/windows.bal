@@ -77,7 +77,7 @@ public type TimeWindow object {
     public EventType eventType = "ALL";
 
 
-    private collections:Queue eventQueue;
+    private collections:LinkedList eventQueue;
     private function (StreamEvent[]) nextProcessorPointer;
 
 
@@ -87,20 +87,20 @@ public type TimeWindow object {
 
     public function startEventRemovalWorker() {
 
-        StreamEvent frontEvent = check <StreamEvent>eventQueue.peekFront();
-        StreamEvent rearEvent = check <StreamEvent>eventQueue.peekRear();
+        StreamEvent frontEvent = check <StreamEvent>eventQueue.getFirst();
+        StreamEvent rearEvent = check <StreamEvent>eventQueue.getLast();
         StreamEvent[] expiredEvents = [];
         int index = 0;
         while (!eventQueue.isEmpty() && rearEvent.timestamp > frontEvent.timestamp + timeLength) {
             if (!eventQueue.isEmpty()) {
-                StreamEvent streamEvent = check <StreamEvent>eventQueue.dequeue();
+                StreamEvent streamEvent = check <StreamEvent>eventQueue.removeFirst();
                 EventType evType = "EXPIRED";
                 StreamEvent event = {eventType : evType, eventObject : streamEvent.eventObject,
                     timestamp : streamEvent.timestamp};
                 expiredEvents[index] = event;
                 index += 1;
-                frontEvent = check <StreamEvent>eventQueue.peekFront();
-                rearEvent = check <StreamEvent>eventQueue.peekRear();
+                frontEvent = check <StreamEvent>eventQueue.getFirst();
+                rearEvent = check <StreamEvent>eventQueue.getLast();
             }
         }
         if (lengthof expiredEvents > 0) {
@@ -110,12 +110,12 @@ public type TimeWindow object {
 
     public function add(StreamEvent event) {
         if (!eventQueue.isEmpty()) {
-            StreamEvent rearEvent = check <StreamEvent>eventQueue.peekRear();
+            StreamEvent rearEvent = check <StreamEvent>eventQueue.getLast();
             if (rearEvent.timestamp <= event.timestamp) {
-                eventQueue.enqueue(event);
+                eventQueue.addLast(event);
             }
         } else {
-            eventQueue.enqueue(event);
+            eventQueue.addLast(event);
         }
         startEventRemovalWorker();
     }

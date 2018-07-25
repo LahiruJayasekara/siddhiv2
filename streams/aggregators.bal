@@ -188,9 +188,10 @@ public type DistinctCount object {
 
 public type Max object {
 
-    public collections:Queue maxQueue;
-    public int iMax = 0;
-    public float fMax = 0.0;
+    public collections:LinkedList iMaxQueue;
+    public collections:LinkedList fMaxQueue;
+    public int? iMax = ();
+    public float? fMax = ();
 
     public new() {
 
@@ -200,21 +201,77 @@ public type Max object {
         match value {
             int i => {
                 if (eventType == "CURRENT") {
-                    iMax = i;
+                    iMaxQueue.resetToRear();
+                    while (iMaxQueue.hasPrevious()) {
+                        int a = check <int>iMaxQueue.previous();
+                        if (a < i) {
+                            iMaxQueue.removeCurrent();
+                        } else {
+                            break;
+                        }
+                    }
+                    iMaxQueue.addLast(i);
+                    match iMax {
+                        int max => {
+                            iMax = (max < i) ? i : max;
+                        }
+                        () => {
+                            iMax = i;
+                        }
+                    }
+                    return iMax;
                 } else if (eventType == "EXPIRED"){
-                    iMax = i;
+                    iMaxQueue.resetToFront();
+                    while (iMaxQueue.hasNext()) {
+                        int a = check <int>iMaxQueue.next();
+                        if (a == i) {
+                            iMaxQueue.removeCurrent();
+                            break;
+                        }
+                    }
+                    iMax = check <int>iMaxQueue.getFirst();
+                    return iMax;
                 } else if (eventType == "RESET"){
-                    iMax = 0;
+                    iMaxQueue.clear();
+                    iMax = ();
                 }
                 return iMax;
             }
             float f => {
                 if (eventType == "CURRENT") {
-                    fMax = f;
+                    fMaxQueue.resetToRear();
+                    while (fMaxQueue.hasPrevious()) {
+                        float a = check <float>fMaxQueue.previous();
+                        if (a < f) {
+                            fMaxQueue.removeCurrent();
+                        } else {
+                            break;
+                        }
+                    }
+                    fMaxQueue.addLast(f);
+                    match fMax {
+                        float max => {
+                            fMax = (max < f) ? f : max;
+                        }
+                        () => {
+                            fMax = f;
+                        }
+                    }
+                    return fMax;
                 } else if (eventType == "EXPIRED"){
-                    fMax = f;
+                    fMaxQueue.resetToFront();
+                    while (fMaxQueue.hasNext()) {
+                        float a = check <float>fMaxQueue.next();
+                        if (a == f) {
+                            fMaxQueue.removeCurrent();
+                            break;
+                        }
+                    }
+                    fMax = check <float>fMaxQueue.getFirst();
+                    return fMax;
                 } else if (eventType == "RESET"){
-                    fMax = 0.0;
+                    fMaxQueue.clear();
+                    fMax = ();
                 }
                 return fMax;
             }
@@ -226,8 +283,112 @@ public type Max object {
     }
 
     public function clone() returns Aggregator {
-        Max maxAggregator = new ();
+        Max maxAggregator = new();
         return maxAggregator;
+    }
+
+};
+
+
+public type Min object {
+
+    public collections:LinkedList iMinQueue;
+    public collections:LinkedList fMinQueue;
+    public int? iMin = ();
+    public float? fMin = ();
+
+    public new() {
+
+    }
+
+    public function process(any value, EventType eventType) returns any {
+        match value {
+            int i => {
+                if (eventType == "CURRENT") {
+                    iMinQueue.resetToRear();
+                    while (iMinQueue.hasPrevious()) {
+                        int a = check <int>iMinQueue.previous();
+                        if (a > i) {
+                            iMinQueue.removeCurrent();
+                        } else {
+                            break;
+                        }
+                    }
+                    iMinQueue.addLast(i);
+                    match iMin {
+                        int min => {
+                            iMin = (min > i) ? i : min;
+                        }
+                        () => {
+                            iMin = i;
+                        }
+                    }
+                    return iMin;
+                } else if (eventType == "EXPIRED"){
+                    iMinQueue.resetToFront();
+                    while (iMinQueue.hasNext()) {
+                        int a = check <int>iMinQueue.next();
+                        if (a == i) {
+                            iMinQueue.removeCurrent();
+                            break;
+                        }
+                    }
+                    iMin = check <int>iMinQueue.getFirst();
+                    return iMin;
+                } else if (eventType == "RESET"){
+                    iMinQueue.clear();
+                    iMin = ();
+                }
+                return iMin;
+            }
+            float f => {
+                if (eventType == "CURRENT") {
+                    fMinQueue.resetToRear();
+                    while (fMinQueue.hasPrevious()) {
+                        float a = check <float>fMinQueue.previous();
+                        if (a > f) {
+                            fMinQueue.removeCurrent();
+                        } else {
+                            break;
+                        }
+                    }
+                    fMinQueue.addLast(f);
+                    match fMin {
+                        float min => {
+                            fMin = (min > f) ? f : min;
+                        }
+                        () => {
+                            fMin = f;
+                        }
+                    }
+                    return fMin;
+                } else if (eventType == "EXPIRED"){
+                    fMinQueue.resetToFront();
+                    while (fMinQueue.hasNext()) {
+                        float a = check <float>fMinQueue.next();
+                        if (a == f) {
+                            fMinQueue.removeCurrent();
+                            break;
+                        }
+                    }
+                    fMin = check <float>fMinQueue.getFirst();
+                    return fMin;
+                } else if (eventType == "RESET"){
+                    fMinQueue.clear();
+                    fMin = ();
+                }
+                return fMin;
+            }
+            any a => {
+                error e = { message: "Unsupported attribute type found" };
+                return e;
+            }
+        }
+    }
+
+    public function clone() returns Aggregator {
+        Min minAggregator = new ();
+        return minAggregator;
     }
 
 };
