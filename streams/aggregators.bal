@@ -1,7 +1,6 @@
 import ballerina/reflect;
 import ballerina/crypto;
 import ballerina/math;
-import collections;
 
 public type Aggregator object {
 
@@ -188,8 +187,8 @@ public type DistinctCount object {
 
 public type Max object {
 
-    public collections:LinkedList iMaxQueue;
-    public collections:LinkedList fMaxQueue;
+    public LinkedList iMaxQueue;
+    public LinkedList fMaxQueue;
     public int? iMax = ();
     public float? fMax = ();
 
@@ -292,8 +291,8 @@ public type Max object {
 
 public type Min object {
 
-    public collections:LinkedList iMinQueue;
-    public collections:LinkedList fMinQueue;
+    public LinkedList iMinQueue;
+    public LinkedList fMinQueue;
     public int? iMin = ();
     public float? fMin = ();
 

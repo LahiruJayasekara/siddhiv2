@@ -1,5 +1,3 @@
-import collections;
-
 public type EventType "CURRENT"|"EXPIRED"|"ALL"|"RESET";
 
 public type StreamEvent record {
@@ -77,7 +75,7 @@ public type TimeWindow object {
     public EventType eventType = "ALL";
 
 
-    private collections:LinkedList eventQueue;
+    private LinkedList eventQueue;
     private function (StreamEvent[]) nextProcessorPointer;
 
 
