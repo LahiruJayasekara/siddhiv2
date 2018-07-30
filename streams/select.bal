@@ -2,55 +2,66 @@ import ballerina/io;
 
 public type Select object {
 
-
     private function (StreamEvent[]) nextProcessorPointer;
     private Aggregator [] aggregatorArr;
     private (function(StreamEvent o) returns string)? groupbyFunc;
     private function(StreamEvent o, Aggregator []  aggregatorArr1) returns any selectFunc;
-    private map <Aggregator []> aggregatorMap;
+    private map<Aggregator[]> aggregatorsCloneMap;
 
 
     new(nextProcessorPointer, aggregatorArr, groupbyFunc, selectFunc) {
     }
 
     public function process(StreamEvent[] streamEvents) {
-                StreamEvent[] newStreamEventArr = [];
-                int index =0;
+        StreamEvent[] outputStreamEvents = [];
 
-                foreach event in streamEvents {
-                    string groupbyKey = groupbyFunc but {
-                        (function(StreamEvent o) returns string) groupbyFunction => groupbyFunction(event),
-                        () => "DEFAULT"
-                    };
-                    Aggregator[] aggregatorArray;
-                    if(aggregatorMap.hasKey(groupbyKey)) {
-                        match(aggregatorMap[groupbyKey]) {
-                            Aggregator[] aggregators => {
-                                aggregatorArray = aggregators;
-                            }
-                            () => {
-                            }
-                        }
-                    } else {
+        if (lengthof aggregatorArr > 0) {
+            map<StreamEvent> groupedEvents;
+            foreach event in streamEvents {
+                string groupbyKey = groupbyFunc but {
+                    (function(StreamEvent o) returns string) groupbyFunction => groupbyFunction(event),
+                    () => "DEFAULT"
+                };
+                Aggregator[] aggregatorsClone;
+                match (aggregatorsCloneMap[groupbyKey]) {
+                    Aggregator[] aggregators => {
+                        aggregatorsClone = aggregators;
+                    }
+                    () => {
                         int i = 0;
                         foreach aggregator in aggregatorArr {
-                            aggregatorArray[i] = aggregator.clone();
+                            aggregatorsClone[i] = aggregator.clone();
                             i++;
                         }
-                        aggregatorMap[groupbyKey] = aggregatorArray;
+                        aggregatorsCloneMap[groupbyKey] = aggregatorsClone;
                     }
-
-                    StreamEvent streamEvent = {eventType: event.eventType, timestamp: event.timestamp,
-                                                                    eventObject: selectFunc(event, aggregatorArray)};
-
-                    newStreamEventArr[index] = streamEvent;
-                    index +=1;
                 }
-
-                if (index >0) {
-                    nextProcessorPointer(newStreamEventArr);
+                groupedEvents[groupbyKey] = {
+                    eventType: event.eventType,
+                    timestamp: event.timestamp,
+                    eventObject: selectFunc(event, aggregatorsClone)
+                };
+            }
+            foreach key in groupedEvents.keys() {
+                match groupedEvents[key] {
+                    StreamEvent e => {
+                        outputStreamEvents[lengthof outputStreamEvents] = e;
+                    }
+                    () => {}
                 }
-
+            }
+        } else {
+            foreach event in streamEvents {
+                outputStreamEvents[lengthof outputStreamEvents] = {
+                    eventType: event.eventType,
+                    timestamp: event.timestamp,
+                    eventObject: selectFunc(event, aggregatorArr)
+                };
+            }
+        }
+        if (lengthof outputStreamEvents > 0) {
+            nextProcessorPointer(outputStreamEvents);
+        }
     }
 };
 
