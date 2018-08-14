@@ -48,24 +48,24 @@ function main(string... args) {
     teachers[0] = t1;
     teachers[1] = t2;
     teachers[2] = t2;
-    //teachers[3] = t1;
-    //teachers[4] = t2;
-    //teachers[5] = t1;
-    //teachers[6] = t2;
-    //teachers[7] = t1;
-    //teachers[8] = t2;
-    //teachers[9] = t1;
+    teachers[3] = t1;
+    teachers[4] = t2;
+
+    teachers[5] = t1;
+    teachers[6] = t2;
+    teachers[7] = t1;
+    teachers[8] = t2;
+    teachers[9] = t1;
 
     foo();
 
     outputStream.subscribe(printTeachers);
     foreach t in teachers {
+        runtime:sleep(100);
         inputStream.publish(t);
     }
 
     runtime:sleep(1000);
-
-    io:println("output: ", globalEmployeeArray);
 }
 
 
@@ -90,11 +90,11 @@ function foo() {
 
 
     function (TeacherOutput []) outputFunc = (TeacherOutput [] t) => {
+        io:println("output: ", t);
         outputStream.publish(t);
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
-
 
     streams:Sum sumAggregator = new();
     streams:Count countAggregator = new();
@@ -120,24 +120,19 @@ function foo() {
             return teacherOutput;
         });
 
+ //   streams:LengthWindow tmpWindow = streams:lengthWindow(select.process, 5);
 
-    streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
-        (streams:StreamEvent o)  => any {
-            Teacher t = check <Teacher>o.eventObject;
-            TeacherOutput teacherOutput = {name: t.name, age: t.age};
-            return teacherOutput;
-        });
+ //   streams:LengthBatchWindow tmpWindow = streams:lengthBatchWindow(select.process, 5);
 
+    streams:TimeBatchWindow tmpWindow = streams:timeBatchWindow(select.process, 1000);
 
-    streams:Filter filter = streams:createFilter(select.process, (any o) => boolean {
+    streams:Filter filter = streams:createFilter(tmpWindow.process, (any o) => boolean {
             Teacher teacher = check <Teacher> o;
-            io:println("Filter: ", teacher);
             return teacher.age > getValue();
         });
 
     inputStream.subscribe((Teacher t) => {
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(t);
-            io:println("eventArr: ", eventArr);
             filter.process(eventArr);
         });
 }

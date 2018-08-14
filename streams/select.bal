@@ -14,10 +14,14 @@ public type Select object {
 
     public function process(StreamEvent[] streamEvents) {
         StreamEvent[] outputStreamEvents = [];
-
         if (lengthof aggregatorArr > 0) {
             map<StreamEvent> groupedEvents;
             foreach event in streamEvents {
+
+                if (event.eventType == "RESET") {
+                    aggregatorsCloneMap.clear();
+                }
+
                 string groupbyKey = groupbyFunc but {
                     (function(StreamEvent o) returns string) groupbyFunction => groupbyFunction(event),
                     () => "DEFAULT"
