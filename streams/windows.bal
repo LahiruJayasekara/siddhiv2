@@ -2,12 +2,40 @@ import ballerina/io;
 import ballerina/time;
 import ballerina/task;
 
-public type EventType "CURRENT"|"EXPIRED"|"ALL"|"RESET"|"TIMER";
+public type StreamEvent object {
+     public EventType eventType;
+     public int timestamp;
+     public map data;
 
-public type StreamEvent record {
-    EventType eventType;
-    any eventObject;
-    int timestamp;
+    public new((string, map) | map eventData, eventType, timestamp) {
+        match eventData {
+            (string, map) t => {
+                foreach k, v in t[1] {
+                    data[t[0] + DELIMITER + k] = v;
+                }
+            }
+            map m => {
+                data = m;
+            }
+        }
+    }
+
+    public function clone() returns StreamEvent {
+        StreamEvent clone = new(data, eventType, timestamp);
+        return clone;
+    }
+
+    public function expire() returns StreamEvent {
+        StreamEvent clone = new(data, "EXPIRED", timestamp);
+        return clone;
+    }
+
+    public function addData(map eventData) {
+        foreach k, v in eventData {
+            data[k] = v;
+        }
+    }
+
 };
 
 public type LengthWindow object {
@@ -40,11 +68,30 @@ public type LengthWindow object {
             }
 
             outputEvents[lengthof outputEvents] = event;
-            StreamEvent expiredVeresionOfEvent = {eventType : "EXPIRED", eventObject: event.eventObject,
-                timestamp: event.timestamp};
+            StreamEvent expiredVeresionOfEvent = event.expire();
             linkedList.addLast(expiredVeresionOfEvent);
         }
         nextProcessorPointer(outputEvents);
+    }
+
+    public function getCurrentEvents() returns StreamEvent[]{
+        StreamEvent[] events = [];
+        int i = 0;
+        io:println(linkedList.asArray());
+        foreach e in linkedList.asArray() {
+            match e {
+                StreamEvent s => {
+                    io:println(s.timestamp);
+                    events[i] = s;
+                    i++;
+                }
+                any a => {
+                    io:println(a);
+
+                }
+            }
+        }
+        return events;
     }
 };
 
@@ -76,9 +123,7 @@ public type TimeWindow object {
         while (!linkedList.isEmpty() && rearEvent.timestamp > frontEvent.timestamp + timeLength) {
             if (!linkedList.isEmpty()) {
                 StreamEvent streamEvent = check <StreamEvent>linkedList.removeFirst();
-                EventType evType = "EXPIRED";
-                StreamEvent event = {eventType : evType, eventObject : streamEvent.eventObject,
-                    timestamp : streamEvent.timestamp};
+                StreamEvent event = streamEvent.expire();
                 expiredEvents[index] = event;
                 index += 1;
                 frontEvent = check <StreamEvent>linkedList.getFirst();
@@ -101,6 +146,23 @@ public type TimeWindow object {
             linkedList.addLast(event);
         }
         startEventRemovalWorker();
+    }
+
+    public function getCurrentEvents() returns StreamEvent[]{
+        StreamEvent[] events = [];
+        int i = 0;
+        foreach e in linkedList.asArray() {
+            match e {
+                StreamEvent s => {
+                    events[i] = s;
+                    i++;
+                }
+                any a => {
+
+                }
+            }
+        }
+        return events;
     }
 };
 
@@ -129,7 +191,7 @@ public type LengthBatchWindow object {
         int currentTime = time:currentTime().time;
 
         foreach event in streamEvents {
-            StreamEvent clonedStreamEvent = cloneStreamEvent(event);
+            StreamEvent clonedStreamEvent = event.clone();
             currentEventQueue.addLast(clonedStreamEvent);
             count++;
             if (count == length) {
@@ -145,7 +207,7 @@ public type LengthBatchWindow object {
                     //    currentEventQueue.resetToFront();
                     //    while (currentEventQueue.hasNext()) {
                     //        StreamEvent currentEvent = check <StreamEvent> currentEventQueue.next();
-                    //        StreamEvent toBeExpired = {eventType: "EXPIRED", eventObject: currentEvent.eventObject,
+                    //        StreamEvent toBeExpired = {eventType: "EXPIRED", eventMap: currentEvent.eventMap,
                     //            timestamp: currentEvent.timestamp};
                     //        expiredEventQueue.addLast(toBeExpired);
                     //    }
@@ -176,6 +238,23 @@ public type LengthBatchWindow object {
             nextProcessorPointer(events);
         }
     }
+
+    public function getCurrentEvents() returns StreamEvent[]{
+        StreamEvent[] events = [];
+        int i = 0;
+        foreach e in currentEventQueue.asArray() {
+            match e {
+                StreamEvent s => {
+                    events[i] = s;
+                    i++;
+                }
+                any a => {
+
+                }
+            }
+        }
+        return events;
+    }
 };
 
 public function lengthBatchWindow(function(StreamEvent[]) nextProcessPointer, int length)
@@ -200,7 +279,7 @@ public type TimeBatchWindow object {
     }
 
     function invokeProcess() returns error? {
-        StreamEvent timerEvent = {eventType : "TIMER", eventObject: (), timestamp: time:currentTime().time};
+        StreamEvent timerEvent = new (("timer", {}), "TIMER", time:currentTime().time);
         StreamEvent[] timerEventWrapper = [];
         timerEventWrapper[0] = timerEvent;
         process(timerEventWrapper);
@@ -231,7 +310,7 @@ public type TimeBatchWindow object {
             if (event.eventType != "CURRENT") {
                 continue;
             }
-            StreamEvent clonedEvent = cloneStreamEvent(event);
+            StreamEvent clonedEvent = event.clone();
             currentEventQueue.addLast(clonedEvent);
         }
         if (sendEvents) {
@@ -258,6 +337,23 @@ public type TimeBatchWindow object {
             }
             nextProcessorPointer(events);
         }
+    }
+
+    public function getCurrentEvents() returns StreamEvent[]{
+        StreamEvent[] events = [];
+        int i = 0;
+        foreach e in currentEventQueue.asArray() {
+            match e {
+                StreamEvent s => {
+                    events[i] = s;
+                    i++;
+                }
+                any a => {
+
+                }
+            }
+        }
+        return events;
     }
 
     function handleError(error e) {

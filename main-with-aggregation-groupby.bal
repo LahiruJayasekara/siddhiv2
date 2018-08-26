@@ -65,12 +65,14 @@ function main(string... args) {
         inputStream.publish(t);
     }
 
-    runtime:sleep(1000);
+    runtime:sleep(3000);
+
+    io:println("output: ", globalEmployeeArray);
 }
 
 
 //  ------------- Query to be implemented -------------------------------------------------------
-//  from inputStream where inputStream.age > 25
+//  from inputStream where inputStream.age > getValue()
 //  select inputStream.name, inputStream.age, sum (inputStream.age) as sumAge, count() as count
 //  group by inputStream.name
 //      => (TeacherOutput [] o) {
@@ -80,17 +82,9 @@ function main(string... args) {
 
 function foo() {
 
-    //forever {
-    //    from inputStream where inputStream.age > 25
-    //    select inputStream.name, inputStream.age
-    //    => (Teacher[] emp) {
-    //        outputStream.publish(emp);
-    //    }
-    //}
-
-
-    function (TeacherOutput []) outputFunc = (TeacherOutput [] t) => {
-        io:println("output: ", t);
+    function (map) outputFunc = (map m) => {
+        // just cast input map into the output type
+        TeacherOutput t = check <TeacherOutput>m;
         outputStream.publish(t);
     };
 
@@ -104,37 +98,40 @@ function foo() {
 
     streams:Select select = streams:createSelect(outputProcess.process, aggregatorArr,
         (streams:StreamEvent e) => string {
-            Teacher t = check <Teacher> e.eventObject;
-            return t.name;
+            return <string>e.data["inputStream.name"];
         },
-        (streams:StreamEvent e, streams:Aggregator [] aggregatorArr1)  => any {
-            Teacher t = check <Teacher> e.eventObject;
-            streams:Sum sumAggregator1 = check <streams:Sum> aggregatorArr1[0];
-            streams:Count countAggregator1 = check <streams:Count> aggregatorArr1[1];
-            TeacherOutput teacherOutput = {
-                name: t.name,
-                age: t.age,
-                sumAge: check<int> sumAggregator1.process(t.age, e.eventType),
-                count: check<int> countAggregator1.process((), e.eventType)
+        (streams:StreamEvent e, streams:Aggregator[] aggregatorArr1) => map {
+            streams:Sum sumAggregator1 = check <streams:Sum>aggregatorArr1[0];
+            streams:Count countAggregator1 = check <streams:Count>aggregatorArr1[1];
+            // got rid of type casting
+            return {
+                "name": e.data["inputStream.name"],
+                "age": e.data["inputStream.age"],
+                "sumAge": sumAggregator1.process(e.data["inputStream.age"], e.eventType),
+                "count": countAggregator1.process((), e.eventType)
             };
-            return teacherOutput;
-        });
+        }
+    );
 
- //   streams:LengthWindow tmpWindow = streams:lengthWindow(select.process, 5);
+    streams:LengthWindow tmpWindow = streams:lengthWindow(select.process, 5);
 
- //   streams:LengthBatchWindow tmpWindow = streams:lengthBatchWindow(select.process, 5);
+    //streams:LengthBatchWindow tmpWindow = streams:lengthBatchWindow(select.process, 5);
 
-    streams:TimeBatchWindow tmpWindow = streams:timeBatchWindow(select.process, 1000);
+    //streams:TimeBatchWindow tmpWindow = streams:timeBatchWindow(select.process, 1000);
 
-    streams:Filter filter = streams:createFilter(tmpWindow.process, (any o) => boolean {
-            Teacher teacher = check <Teacher> o;
-            return teacher.age > getValue();
-        });
+    streams:Filter filter = streams:createFilter(tmpWindow.process, (map m) => boolean {
+            // simplify filter
+            return check <int>m["inputStream.age"] > getValue();
+        }
+    );
 
     inputStream.subscribe((Teacher t) => {
-            streams:StreamEvent[] eventArr = streams:buildStreamEvent(t);
+            // make it type unaware and proceed
+            map keyVal = <map>t;
+            streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
             filter.process(eventArr);
-        });
+        }
+    );
 }
 
 function getValue() returns int  {
