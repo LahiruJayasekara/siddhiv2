@@ -289,7 +289,8 @@ public type TimeBatchWindow object {
         LinkedList outputStreamEvents = new();
         if (nextEmitTime == -1) {
             nextEmitTime = time:currentTime().time + timeInMilliSeconds;
-            timer = new task:Timer(invokeProcess, handleError, timeInMilliSeconds, delay = timeInMilliSeconds);
+            timer = new task:Timer(self.invokeProcess, self.handleError, timeInMilliSeconds, delay =
+                timeInMilliSeconds);
             _ = timer.start();
         }
 
@@ -299,7 +300,8 @@ public type TimeBatchWindow object {
         if (currentTime >= nextEmitTime) {
             nextEmitTime += timeInMilliSeconds;
             timer.stop();
-            timer = new task:Timer(invokeProcess, handleError, timeInMilliSeconds, delay = timeInMilliSeconds);
+            timer = new task:Timer(self.invokeProcess, self.handleError, timeInMilliSeconds, delay =
+                timeInMilliSeconds);
             _ = timer.start();
             sendEvents = true;
         } else {

@@ -61,7 +61,7 @@ function main(string... args) {
 
     outputStream.subscribe(printTeachers);
     foreach t in teachers {
-        runtime:sleep(100);
+        runtime:sleep(10);
         inputStream.publish(t);
     }
 
