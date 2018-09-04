@@ -61,11 +61,11 @@ function main(string... args) {
 
     outputStream.subscribe(printTeachers);
     foreach t in teachers {
-        runtime:sleep(10);
+        runtime:sleep(1);
         inputStream.publish(t);
     }
 
-    runtime:sleep(2000);
+    runtime:sleep(5000);
 }
 
 
