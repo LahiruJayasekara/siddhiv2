@@ -255,6 +255,15 @@ public type LinkedList object {
         }
     }
 
+    public function insertBeforeCurrent(any data) {
+        match curr {
+            Node c => {
+                linkBefore(data, c);
+            }
+            () => {}
+        }
+    }
+
     // Links data as first element.
     function linkFirst(any data) {
         match first {
@@ -289,7 +298,7 @@ public type LinkedList object {
         size++;
     }
 
-    // Inserts element e before non-null Node succ.
+    // Inserts element 'data' before non-null Node succ.
     function linkBefore(any data, Node succ) {
         Node? pred = succ.prev;
         Node newNode = new(pred, data, succ);

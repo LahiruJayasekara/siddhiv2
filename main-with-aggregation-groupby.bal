@@ -65,7 +65,7 @@ function main(string... args) {
         inputStream.publish(t);
     }
 
-    runtime:sleep(1000);
+    runtime:sleep(2000);
 }
 
 
@@ -120,11 +120,13 @@ function foo() {
             return teacherOutput;
         });
 
- //   streams:LengthWindow tmpWindow = streams:lengthWindow(select.process, 5);
+ //   streams:Window tmpWindow = streams:lengthWindow(select.process, 5);
 
- //   streams:LengthBatchWindow tmpWindow = streams:lengthBatchWindow(select.process, 5);
+ //   streams:Window tmpWindow = streams:lengthBatchWindow(select.process, 5);
 
-    streams:TimeBatchWindow tmpWindow = streams:timeBatchWindow(select.process, 1000);
+    streams:Window tmpWindow = streams:timeWindow(select.process, 1000);
+
+ //   streams:Window tmpWindow = streams:timeBatchWindow(select.process, 1000);
 
     streams:Filter filter = streams:createFilter(tmpWindow.process, (any o) => boolean {
             Teacher teacher = check <Teacher> o;
