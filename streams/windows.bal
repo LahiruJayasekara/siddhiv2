@@ -3,9 +3,9 @@ import ballerina/time;
 import ballerina/task;
 
 public type StreamEvent object {
-     public EventType eventType;
-     public int timestamp;
-     public map data;
+    public EventType eventType;
+    public int timestamp;
+    public map data;
 
     public new((string, map) | map eventData, eventType, timestamp) {
         match eventData {
@@ -21,12 +21,7 @@ public type StreamEvent object {
     }
 
     public function clone() returns StreamEvent {
-        StreamEvent clone = new(data, eventType, timestamp);
-        return clone;
-    }
-
-    public function expire() returns StreamEvent {
-        StreamEvent clone = new(data, "EXPIRED", timestamp);
+        StreamEvent clone = new(cloneData(), eventType, timestamp);
         return clone;
     }
 
@@ -36,6 +31,13 @@ public type StreamEvent object {
         }
     }
 
+    function cloneData() returns map {
+        map dataClone;
+        foreach k, v in data {
+            dataClone[k] = v;
+        }
+        return dataClone;
+    }
 };
 
 public type LengthWindow object {
@@ -68,7 +70,8 @@ public type LengthWindow object {
             }
 
             outputEvents[lengthof outputEvents] = event;
-            StreamEvent expiredVeresionOfEvent = event.expire();
+            StreamEvent expiredVeresionOfEvent = event.clone();
+            expiredVeresionOfEvent.eventType = "EXPIRED";
             linkedList.addLast(expiredVeresionOfEvent);
         }
         nextProcessorPointer(outputEvents);
@@ -77,17 +80,37 @@ public type LengthWindow object {
     public function getCurrentEvents() returns StreamEvent[]{
         StreamEvent[] events = [];
         int i = 0;
-        io:println(linkedList.asArray());
         foreach e in linkedList.asArray() {
             match e {
                 StreamEvent s => {
-                    io:println(s.timestamp);
                     events[i] = s;
                     i++;
                 }
                 any a => {
-                    io:println(a);
+                }
+            }
+        }
+        return events;
+    }
 
+    public function getCandidateEvents(
+                        StreamEvent originEvent,
+                        function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
+                        boolean isLHSTrigger = true)
+                        returns (StreamEvent, StreamEvent)[] {
+        (StreamEvent, StreamEvent)[] events;
+        int i = 0;
+        foreach e in linkedList.asArray() {
+            match e {
+                StreamEvent s => {
+                    StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
+                    StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
+                    if (conditionFunc(lshEvent, rhsEvent)) {
+                        events[i] = (lshEvent, rhsEvent);
+                        i++;
+                    }
+                }
+                any a => {
                 }
             }
         }
@@ -123,7 +146,8 @@ public type TimeWindow object {
         while (!linkedList.isEmpty() && rearEvent.timestamp > frontEvent.timestamp + timeLength) {
             if (!linkedList.isEmpty()) {
                 StreamEvent streamEvent = check <StreamEvent>linkedList.removeFirst();
-                StreamEvent event = streamEvent.expire();
+                StreamEvent event = streamEvent.clone();
+                event.eventType = "EXPIRED";
                 expiredEvents[index] = event;
                 index += 1;
                 frontEvent = check <StreamEvent>linkedList.getFirst();
@@ -159,6 +183,30 @@ public type TimeWindow object {
                 }
                 any a => {
 
+                }
+            }
+        }
+        return events;
+    }
+
+    public function getCandidateEvents(
+                        StreamEvent originEvent,
+                        function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
+                        boolean isLHSTrigger = true)
+                        returns (StreamEvent, StreamEvent)[] {
+        (StreamEvent, StreamEvent)[] events = [];
+        int i = 0;
+        foreach e in linkedList.asArray() {
+            match e {
+                StreamEvent s => {
+                    StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
+                    StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
+                    if (conditionFunc(lshEvent, rhsEvent)) {
+                        events[i] = (lshEvent, rhsEvent);
+                        i++;
+                    }
+                }
+                any a => {
                 }
             }
         }
@@ -250,6 +298,30 @@ public type LengthBatchWindow object {
                 }
                 any a => {
 
+                }
+            }
+        }
+        return events;
+    }
+
+    public function getCandidateEvents(
+                        StreamEvent originEvent,
+                        function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
+                        boolean isLHSTrigger = true)
+                        returns (StreamEvent, StreamEvent)[] {
+        (StreamEvent, StreamEvent)[] events = [];
+        int i = 0;
+        foreach e in currentEventQueue.asArray() {
+            match e {
+                StreamEvent s => {
+                    StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
+                    StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
+                    if (conditionFunc(lshEvent, rhsEvent)) {
+                        events[i] = (lshEvent, rhsEvent);
+                        i++;
+                    }
+                }
+                any a => {
                 }
             }
         }
@@ -352,6 +424,30 @@ public type TimeBatchWindow object {
                 }
                 any a => {
 
+                }
+            }
+        }
+        return events;
+    }
+
+    public function getCandidateEvents(
+                        StreamEvent originEvent,
+                        function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
+                        boolean isLHSTrigger = true)
+                        returns (StreamEvent, StreamEvent)[] {
+        (StreamEvent, StreamEvent)[] events = [];
+        int i = 0;
+        foreach e in currentEventQueue.asArray() {
+            match e {
+                StreamEvent s => {
+                    StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
+                    StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
+                    if (conditionFunc(lshEvent, rhsEvent)) {
+                        events[i] = (lshEvent, rhsEvent);
+                        i++;
+                    }
+                }
+                any a => {
                 }
             }
         }
