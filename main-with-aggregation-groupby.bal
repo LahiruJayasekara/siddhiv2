@@ -61,11 +61,11 @@ public function main(string... args) {
 
     outputStream.subscribe(printTeachers);
     foreach t in teachers {
-        runtime:sleep(10);
+        runtime:sleep(1);
         inputStream.publish(t);
     }
 
-    runtime:sleep(3000);
+    runtime:sleep(5000);
 
     io:println("output: ", globalEmployeeArray);
 }
@@ -113,11 +113,13 @@ function foo() {
         }
     );
 
-    streams:LengthWindow tmpWindow = streams:lengthWindow(select.process, 5);
+    //   streams:Window tmpWindow = streams:lengthWindow(select.process, 5);
 
-    //streams:LengthBatchWindow tmpWindow = streams:lengthBatchWindow(select.process, 5);
+    //   streams:Window tmpWindow = streams:lengthBatchWindow(select.process, 5);
 
-    //streams:TimeBatchWindow tmpWindow = streams:timeBatchWindow(select.process, 1000);
+    streams:Window tmpWindow = streams:timeWindow(select.process, 1000);
+
+    //   streams:Window tmpWindow = streams:timeBatchWindow(select.process, 1000);
 
     streams:Filter filter = streams:createFilter(tmpWindow.process, (map m) => boolean {
             // simplify filter
