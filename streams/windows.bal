@@ -217,7 +217,7 @@ public type TimeWindow object {
     }
 
     public function invokeProcess() returns error? {
-        StreamEvent timerEvent = {eventType : "TIMER", eventObject: (), timestamp: time:currentTime().time};
+        StreamEvent timerEvent = new (("timer", {}), "TIMER", time:currentTime().time);
         StreamEvent[] timerEventWrapper = [];
         timerEventWrapper[0] = timerEvent;
         process(timerEventWrapper);
