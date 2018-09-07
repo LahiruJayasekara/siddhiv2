@@ -62,22 +62,6 @@ public type LengthWindow object {
         nextProcessorPointer(outputEvents);
     }
 
-    public function getCurrentEvents() returns StreamEvent[]{
-        StreamEvent[] events = [];
-        int i = 0;
-        foreach e in linkedList.asArray() {
-            match e {
-                StreamEvent s => {
-                    events[i] = s;
-                    i++;
-                }
-                any a => {
-                }
-            }
-        }
-        return events;
-    }
-
     public function getCandidateEvents(
                         StreamEvent originEvent,
                         function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
@@ -194,23 +178,6 @@ public type TimeWindow object {
         io:println("Error occured", e);
     }
 
-    public function getCurrentEvents() returns StreamEvent[]{
-        StreamEvent[] events = [];
-        int i = 0;
-        foreach e in expiredEventQueue.asArray() {
-            match e {
-                StreamEvent s => {
-                    events[i] = s;
-                    i++;
-                }
-                any a => {
-
-                }
-            }
-        }
-        return events;
-    }
-
     public function getCandidateEvents(
                         StreamEvent originEvent,
                         function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
@@ -307,23 +274,6 @@ public type LengthBatchWindow object {
             }
             nextProcessorPointer(events);
         }
-    }
-
-    public function getCurrentEvents() returns StreamEvent[]{
-        StreamEvent[] events = [];
-        int i = 0;
-        foreach e in currentEventQueue.asArray() {
-            match e {
-                StreamEvent s => {
-                    events[i] = s;
-                    i++;
-                }
-                any a => {
-
-                }
-            }
-        }
-        return events;
     }
 
     public function getCandidateEvents(
@@ -434,23 +384,6 @@ public type TimeBatchWindow object {
             }
             nextProcessorPointer(events);
         }
-    }
-
-    public function getCurrentEvents() returns StreamEvent[]{
-        StreamEvent[] events = [];
-        int i = 0;
-        foreach e in currentEventQueue.asArray() {
-            match e {
-                StreamEvent s => {
-                    events[i] = s;
-                    i++;
-                }
-                any a => {
-
-                }
-            }
-        }
-        return events;
     }
 
     public function getCandidateEvents(
