@@ -120,9 +120,9 @@ function joinFunc() {
     );
 
     // On condition
-    function (streams:StreamEvent, streams:StreamEvent) returns boolean conditionFunc =
-    (streams:StreamEvent lsh, streams:StreamEvent rhs) => boolean {
-        return lsh.data["inputStreamA.category"] == rhs.data["inputStreamB.symbol"];
+    function (map, map) returns boolean conditionFunc =
+    (map lsh, map rhs) => boolean {
+        return lsh["inputStreamA.category"] == rhs["inputStreamB.symbol"];
     };
 
     // Join processor

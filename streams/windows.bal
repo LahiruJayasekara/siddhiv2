@@ -64,7 +64,7 @@ public type LengthWindow object {
 
     public function getCandidateEvents(
                         StreamEvent originEvent,
-                        function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
+                        function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
                         returns (StreamEvent, StreamEvent)[] {
         (StreamEvent, StreamEvent)[] events;
@@ -74,7 +74,7 @@ public type LengthWindow object {
                 StreamEvent s => {
                     StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
                     StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
-                    if (conditionFunc(lshEvent, rhsEvent)) {
+                    if (conditionFunc(lshEvent.data, rhsEvent.data)) {
                         events[i] = (lshEvent, rhsEvent);
                         i++;
                     }
@@ -180,7 +180,7 @@ public type TimeWindow object {
 
     public function getCandidateEvents(
                         StreamEvent originEvent,
-                        function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
+                        function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
                         returns (StreamEvent, StreamEvent)[] {
         (StreamEvent, StreamEvent)[] events = [];
@@ -190,7 +190,7 @@ public type TimeWindow object {
                 StreamEvent s => {
                     StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
                     StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
-                    if (conditionFunc(lshEvent, rhsEvent)) {
+                    if (conditionFunc(lshEvent.data, rhsEvent.data)) {
                         events[i] = (lshEvent, rhsEvent);
                         i++;
                     }
@@ -278,7 +278,7 @@ public type LengthBatchWindow object {
 
     public function getCandidateEvents(
                         StreamEvent originEvent,
-                        function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
+                        function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
                         returns (StreamEvent, StreamEvent)[] {
         (StreamEvent, StreamEvent)[] events = [];
@@ -288,7 +288,7 @@ public type LengthBatchWindow object {
                 StreamEvent s => {
                     StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
                     StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
-                    if (conditionFunc(lshEvent, rhsEvent)) {
+                    if (conditionFunc(lshEvent.data, rhsEvent.data)) {
                         events[i] = (lshEvent, rhsEvent);
                         i++;
                     }
@@ -388,7 +388,7 @@ public type TimeBatchWindow object {
 
     public function getCandidateEvents(
                         StreamEvent originEvent,
-                        function (StreamEvent e1, StreamEvent e2) returns boolean conditionFunc,
+                        function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
                         returns (StreamEvent, StreamEvent)[] {
         (StreamEvent, StreamEvent)[] events = [];
@@ -398,7 +398,7 @@ public type TimeBatchWindow object {
                 StreamEvent s => {
                     StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
                     StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
-                    if (conditionFunc(lshEvent, rhsEvent)) {
+                    if (conditionFunc(lshEvent.data, rhsEvent.data)) {
                         events[i] = (lshEvent, rhsEvent);
                         i++;
                     }

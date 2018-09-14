@@ -1,7 +1,7 @@
 import ballerina/io;
 
 public type JoinProcesor object {
-    private function (StreamEvent e1, StreamEvent e2) returns boolean onConditionFunc;
+    private function (map e1Data, map e2Data) returns boolean onConditionFunc;
     private function (any) nextProcessor;
     public LengthWindow? lhsWindow;
     public LengthWindow? rhsWindow;
@@ -214,8 +214,7 @@ public type JoinProcesor object {
 };
 
 public function createJoinProcesor(function (any) nextProcessor, JoinType joinType,
-                                   function (StreamEvent e1, StreamEvent e2)
-                                       returns boolean conditionFunc)
+                                   function (map e1Data, map e2Data) returns boolean conditionFunc)
                     returns JoinProcesor {
     JoinProcesor joinProcesor = new(nextProcessor, joinType, conditionFunc);
     return joinProcesor;
