@@ -39,6 +39,8 @@ type OutputRecord record {
     int sum;
 };
 
+public int streamLock = 0;
+
 stream<InputRecordA> inputStreamA;
 stream<InputRecordB> inputStreamB;
 stream<OutputRecord> outputStream;
@@ -61,9 +63,7 @@ public function main(string... args) {
 
     foreach i, r in recordsA {
         inputStreamA.publish(r);
-        runtime:sleep(20);
         inputStreamB.publish(recordsB[i]);
-        runtime:sleep(30);
     }
 
     runtime:sleep(1000);
@@ -150,17 +150,25 @@ function joinFunc() {
 
     // Subscribe to input streams
     inputStreamA.subscribe((InputRecordA i) => {
-            // make it type unaware and proceed
-            map keyVal = <map>i;
-            streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStreamA");
-            filterA.process(eventArr);
+            lock {
+                streamLock++;
+                io:println(i);
+                // make it type unaware and proceed
+                map keyVal = <map>i;
+                streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStreamA");
+                filterA.process(eventArr);
+            }
         }
     );
     inputStreamB.subscribe((InputRecordB i) => {
-            // make it type unaware and proceed
-            map keyVal = <map>i;
-            streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStreamB");
-            filterB.process(eventArr);
+            lock {
+                streamLock++;
+                io:println(i);
+                // make it type unaware and proceed
+                map keyVal = <map>i;
+                streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStreamB");
+                filterB.process(eventArr);
+            }
         }
     );
 
