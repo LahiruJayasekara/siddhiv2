@@ -331,3 +331,74 @@ public function timeBatchWindow(function(StreamEvent[]) nextProcessPointer, int 
     TimeBatchWindow timeBatch = new(nextProcessPointer, time);
     return timeBatch;
 }
+
+public type ExternalTimeWindow object {
+
+    public int timeInMillis;
+    public LinkedList expiredEventQueue;
+    public function (StreamEvent[]) nextProcessorPointer;
+    public function (any) returns int getEventTimeFunction;
+
+    public new (nextProcessorPointer, timeInMillis, getEventTimeFunction) {
+        expiredEventQueue = new;
+    }
+
+
+    public function process(StreamEvent[] streamEvents) {
+        //io:println(i, " ", streamEvents);
+        LinkedList streamEventChunk = new;
+        lock {
+            foreach event in streamEvents {
+                event.timestamp = getEventTimeFunction(event.eventObject);
+                streamEventChunk.addLast(event);
+            }
+
+            streamEventChunk.resetToFront();
+
+            while (streamEventChunk.hasNext()) {
+                StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
+                int currentTime = streamEvent.timestamp;
+                //io:println("currTime ",currentTime);
+                expiredEventQueue.resetToFront();
+
+                while (expiredEventQueue.hasNext()) {
+                    StreamEvent expiredEvent = check <StreamEvent>expiredEventQueue.next();
+                    int timeDiff = (expiredEvent.timestamp - currentTime) + timeInMillis;
+                    if (timeDiff <= 0) {
+                        expiredEventQueue.removeCurrent();
+                        expiredEvent.timestamp = currentTime;
+                        streamEventChunk.insertBeforeCurrent(expiredEvent);
+                    } else {
+                        expiredEventQueue.resetToFront();
+                        break;
+                    }
+                }
+
+                if (streamEvent.eventType == "CURRENT") {
+                    StreamEvent clonedEvent = cloneStreamEvent(streamEvent);
+                    clonedEvent.eventType = "EXPIRED";
+                    expiredEventQueue.addLast(clonedEvent);
+                }
+                expiredEventQueue.resetToFront();
+            }
+            //expiredEventQueue.resetToFront();
+        }
+        if (streamEventChunk.getSize() != 0) {
+            StreamEvent[] events = [];
+            streamEventChunk.resetToFront();
+            while (streamEventChunk.hasNext()) {
+                StreamEvent streamEvent = check <StreamEvent> streamEventChunk.next();
+                events[lengthof events] = streamEvent;
+            }
+            //io:println(events);
+            nextProcessorPointer(events);
+        }
+    }
+};
+
+public function externalTimeWindow(function(StreamEvent[]) nextProcessPointer, int timeLength, function (any o) returns int
+    getEventTimeFunction) returns ExternalTimeWindow {
+
+    ExternalTimeWindow timeWindow1 = new(nextProcessPointer, timeLength, getEventTimeFunction);
+    return timeWindow1;
+}
