@@ -5,7 +5,7 @@ public type Select object {
     private function (StreamEvent[]) nextProcessorPointer;
     private Aggregator [] aggregatorArr;
     private (function(StreamEvent o) returns string)? groupbyFunc;
-    private function(StreamEvent o, Aggregator []  aggregatorArr1) returns any selectFunc;
+    private function(StreamEvent o, Aggregator []  aggregatorArr1) returns map selectFunc;
     private map<Aggregator[]> aggregatorsCloneMap;
 
 
@@ -18,13 +18,13 @@ public type Select object {
             map<StreamEvent> groupedEvents;
             foreach event in streamEvents {
 
-                if (event.eventType == "RESET") {
+                if (event.eventType == RESET) {
                     aggregatorsCloneMap.clear();
                 }
 
                 string groupbyKey = groupbyFunc but {
                     (function(StreamEvent o) returns string) groupbyFunction => groupbyFunction(event),
-                    () => "DEFAULT"
+                    () => DEFAULT
                 };
                 Aggregator[] aggregatorsClone;
                 match (aggregatorsCloneMap[groupbyKey]) {
@@ -40,11 +40,8 @@ public type Select object {
                         aggregatorsCloneMap[groupbyKey] = aggregatorsClone;
                     }
                 }
-                groupedEvents[groupbyKey] = {
-                    eventType: event.eventType,
-                    timestamp: event.timestamp,
-                    eventObject: selectFunc(event, aggregatorsClone)
-                };
+                StreamEvent e = new ((OUTPUT, selectFunc(event, aggregatorsClone)), event.eventType, event.timestamp);
+                groupedEvents[groupbyKey] = e;
             }
             foreach key in groupedEvents.keys() {
                 match groupedEvents[key] {
@@ -56,11 +53,8 @@ public type Select object {
             }
         } else {
             foreach event in streamEvents {
-                outputStreamEvents[lengthof outputStreamEvents] = {
-                    eventType: event.eventType,
-                    timestamp: event.timestamp,
-                    eventObject: selectFunc(event, aggregatorArr)
-                };
+                StreamEvent e = new ((OUTPUT, selectFunc(event, aggregatorArr)), event.eventType, event.timestamp);
+                outputStreamEvents[lengthof outputStreamEvents] = e;
             }
         }
         if (lengthof outputStreamEvents > 0) {
@@ -72,7 +66,7 @@ public type Select object {
 public function createSelect(function (StreamEvent[]) nextProcPointer,
                                 Aggregator [] aggregatorArr,
                                 (function(StreamEvent o) returns string)? groupbyFunc,
-                                function(StreamEvent o, Aggregator [] aggregatorArr1) returns any selectFunc)
+                                function(StreamEvent o, Aggregator [] aggregatorArr1) returns map selectFunc)
         returns Select {
 
     Select select = new(nextProcPointer, aggregatorArr, groupbyFunc, selectFunc);
