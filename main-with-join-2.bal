@@ -87,7 +87,7 @@ public function main(string... args) {
 //
 function joinFunc() {
 
-    function (map) outputFunc = (map m) => {
+    function (map) outputFunc = function (map m) {
         // just cast input map into the output type
         OutputRecord o = check <OutputRecord>m;
         outputStream.publish(o);
@@ -103,10 +103,10 @@ function joinFunc() {
 
     // Selector
     streams:Select select = streams:createSelect(outputProcess.process, aggregatorArr,
-        (streams:StreamEvent e) => string { // groupBy
+        function (streams:StreamEvent e) returns string { // groupBy
             return <string>e.data["inputStreamA.category"];
         },
-        (streams:StreamEvent e, streams:Aggregator[] aggregatorArr1) => map { // seclectFunction
+        function (streams:StreamEvent e, streams:Aggregator[] aggregatorArr1) returns map { // seclectFunction
             streams:Sum sumAggregator1 = check <streams:Sum>aggregatorArr1[0];
             // got rid of type casting
             return {
@@ -121,35 +121,35 @@ function joinFunc() {
 
     // On condition
     function (map, map) returns boolean conditionFunc =
-    (map lsh, map rhs) => boolean {
+    function (map lsh, map rhs) returns boolean {
         return lsh["inputStreamA.category"] == rhs["inputStreamB.symbol"];
     };
 
     // Join processor
-    streams:JoinProcesor joinProcesor = streams:createJoinProcesor(select.process, "INNER", conditionFunc);
+    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "INNER", conditionFunc);
 
     // Window processors
-    streams:LengthWindow lengthWindowA = streams:lengthWindow(joinProcesor.process, 1);
-    streams:LengthWindow lengthWindowB = streams:lengthWindow(joinProcesor.process, 1);
+    streams:LengthWindow lengthWindowA = streams:lengthWindow(joinProcessor.process, 1);
+    streams:LengthWindow lengthWindowB = streams:lengthWindow(joinProcessor.process, 1);
 
     // Set the window processors to the join processor
-    joinProcesor.setLHS("inputStreamA", lengthWindowA);
-    joinProcesor.setRHS("inputStreamB", lengthWindowB);
+    joinProcessor.setLHS("inputStreamA", lengthWindowA);
+    joinProcessor.setRHS("inputStreamB", lengthWindowB);
 
     // Per stream filters
-    streams:Filter filterA = streams:createFilter(lengthWindowA.process, (map m) => boolean {
+    streams:Filter filterA = streams:createFilter(lengthWindowA.process, function (map m) returns boolean {
             // simplify filter
             return <string>m["inputStreamA.category"] == "ANX";
         }
     );
-    streams:Filter filterB = streams:createFilter(lengthWindowB.process, (map m) => boolean {
+    streams:Filter filterB = streams:createFilter(lengthWindowB.process, function (map m) returns boolean {
             // simplify filter
             return check <int>m["inputStreamB.intVal"] > getValue();
         }
     );
 
     // Subscribe to input streams
-    inputStreamA.subscribe((InputRecordA i) => {
+    inputStreamA.subscribe(function (InputRecordA i) {
             lock {
                 streamLock++;
                 io:println(i);
@@ -160,7 +160,7 @@ function joinFunc() {
             }
         }
     );
-    inputStreamB.subscribe((InputRecordB i) => {
+    inputStreamB.subscribe(function (InputRecordB i) {
             lock {
                 streamLock++;
                 io:println(i);
