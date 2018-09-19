@@ -23,6 +23,15 @@ public type Window object {
     public function process(StreamEvent[] streamEvents) {
 
     }
+
+    public function getCandidateEvents(
+                        StreamEvent originEvent,
+                        function (map e1Data, map e2Data) returns boolean conditionFunc,
+                        boolean isLHSTrigger = true)
+                        returns (StreamEvent, StreamEvent)[] {
+        (StreamEvent, StreamEvent)[] events;
+        return events;
+    }
 };
 
 public type LengthWindow object {
@@ -88,7 +97,7 @@ public type LengthWindow object {
 };
 
 public function lengthWindow(function (StreamEvent[]) nextProcessorPointer, int length)
-        returns LengthWindow {
+                    returns LengthWindow {
     LengthWindow lengthWindow1 = new(nextProcessorPointer, length);
     return lengthWindow1;
 }
@@ -105,7 +114,6 @@ public type TimeWindow object {
         expiredEventQueue = new;
         timerQueue = new;
     }
-
 
     public function process(StreamEvent[] streamEvents) {
         LinkedList streamEventChunk = new;

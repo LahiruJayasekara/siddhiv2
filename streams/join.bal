@@ -1,10 +1,10 @@
 import ballerina/io;
 
-public type JoinProcesor object {
+public type JoinProcessor object {
     private function (map e1Data, map e2Data) returns boolean onConditionFunc;
     private function (any) nextProcessor;
-    public LengthWindow? lhsWindow;
-    public LengthWindow? rhsWindow;
+    public Window? lhsWindow;
+    public Window? rhsWindow;
     public string? lhsStream;
     public string? rhsStream;
     public string? unidirectionalStream;
@@ -99,12 +99,12 @@ public type JoinProcesor object {
         nextProcessor(outputEvents);
     }
 
-    public function setLHS(string streamName, LengthWindow windowInstance) {
+    public function setLHS(string streamName, Window windowInstance) {
         self.lhsStream = streamName;
         self.lhsWindow = windowInstance;
     }
 
-    public function setRHS(string streamName, LengthWindow windowInstance) {
+    public function setRHS(string streamName, Window windowInstance) {
         self.rhsStream = streamName;
         self.rhsWindow = windowInstance;
     }
@@ -213,9 +213,9 @@ public type JoinProcesor object {
     }
 };
 
-public function createJoinProcesor(function (any) nextProcessor, JoinType joinType,
-                                   function (map e1Data, map e2Data) returns boolean conditionFunc)
-                    returns JoinProcesor {
-    JoinProcesor joinProcesor = new(nextProcessor, joinType, conditionFunc);
+public function createJoinProcessor(function (any) nextProcessor, JoinType joinType,
+                                    function (map e1Data, map e2Data) returns boolean conditionFunc)
+                    returns JoinProcessor {
+    JoinProcessor joinProcesor = new(nextProcessor, joinType, conditionFunc);
     return joinProcesor;
 }
