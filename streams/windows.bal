@@ -434,19 +434,17 @@ public type ExternalTimeWindow object {
     public int timeInMillis;
     public LinkedList expiredEventQueue;
     public function (StreamEvent[]) nextProcessorPointer;
-    public function (any) returns int getEventTimeFunction;
+    public string timeStamp;
 
-    public new (nextProcessorPointer, timeInMillis, getEventTimeFunction) {
+    public new (nextProcessorPointer, timeInMillis, timeStamp) {
         expiredEventQueue = new;
     }
 
 
     public function process(StreamEvent[] streamEvents) {
-        //io:println(i, " ", streamEvents);
         LinkedList streamEventChunk = new;
         lock {
             foreach event in streamEvents {
-                event.timestamp = getEventTimeFunction(event.eventObject);
                 streamEventChunk.addLast(event);
             }
 
@@ -454,16 +452,16 @@ public type ExternalTimeWindow object {
 
             while (streamEventChunk.hasNext()) {
                 StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
-                int currentTime = streamEvent.timestamp;
+                int currentTime = strToInt(<string>streamEvent.data[timeStamp]);
                 //io:println("currTime ",currentTime);
                 expiredEventQueue.resetToFront();
 
                 while (expiredEventQueue.hasNext()) {
                     StreamEvent expiredEvent = check <StreamEvent>expiredEventQueue.next();
-                    int timeDiff = (expiredEvent.timestamp - currentTime) + timeInMillis;
+                    int timeDiff = (strToInt(<string>expiredEvent.data[timeStamp]) - currentTime) + timeInMillis;
                     if (timeDiff <= 0) {
                         expiredEventQueue.removeCurrent();
-                        expiredEvent.timestamp = currentTime;
+                        expiredEvent.data[timeStamp] = currentTime;
                         streamEventChunk.insertBeforeCurrent(expiredEvent);
                     } else {
                         expiredEventQueue.resetToFront();
@@ -472,13 +470,12 @@ public type ExternalTimeWindow object {
                 }
 
                 if (streamEvent.eventType == "CURRENT") {
-                    StreamEvent clonedEvent = cloneStreamEvent(streamEvent);
+                    StreamEvent clonedEvent = streamEvent.clone();
                     clonedEvent.eventType = "EXPIRED";
                     expiredEventQueue.addLast(clonedEvent);
                 }
                 expiredEventQueue.resetToFront();
             }
-            //expiredEventQueue.resetToFront();
         }
         if (streamEventChunk.getSize() != 0) {
             StreamEvent[] events = [];
@@ -487,15 +484,24 @@ public type ExternalTimeWindow object {
                 StreamEvent streamEvent = check <StreamEvent> streamEventChunk.next();
                 events[lengthof events] = streamEvent;
             }
-            //io:println(events);
             nextProcessorPointer(events);
         }
     }
+
+    public function strToInt(string strVal) returns (int){
+        var intResult = <int>strVal;
+        match intResult {
+            int value => return value;
+            error err => {
+                return -1;
+            }
+        }
+
+    }
 };
 
-public function externalTimeWindow(function(StreamEvent[]) nextProcessPointer, int timeLength, function (any o) returns int
-    getEventTimeFunction) returns ExternalTimeWindow {
+public function externalTimeWindow(function(StreamEvent[]) nextProcessPointer, int timeLength, string timeStamp) returns ExternalTimeWindow {
 
-    ExternalTimeWindow timeWindow1 = new(nextProcessPointer, timeLength, getEventTimeFunction);
+    ExternalTimeWindow timeWindow1 = new(nextProcessPointer, timeLength, timeStamp);
     return timeWindow1;
 }

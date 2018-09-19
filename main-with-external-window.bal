@@ -74,7 +74,9 @@ public function main(string... args) {
 
 function foo() {
 
-    function (TeacherOutput) outputFunc = (TeacherOutput t) => {
+    function (map) outputFunc = (map m) => {
+        // just cast input map into the output type
+        TeacherOutput t = check <TeacherOutput>m;
         outputStream.publish(t);
     };
 
@@ -83,22 +85,21 @@ function foo() {
     streams:Sum sumAggregator = new();
 
     streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
-        (streams:StreamEvent e)  => any {
-            Teacher t = check <Teacher> e.eventObject;
-            TeacherOutput teacherOutput = {name: t.name, age: t.age, sumAge: check <int>sumAggregator.process(t.age, e
-                .eventType) };
-            return teacherOutput;
-        });
+        (streams:StreamEvent e) => map {
+            // got rid of type casting
+            return {
+                "name": e.data["inputStream.name"],
+                "age": e.data["inputStream.age"],
+                "sumAge": sumAggregator.process(e.data["inputStream.age"], e.eventType)
+            };
+        }
+    );
 
-
-    streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(simpleSelect.process, 1000, (any o) => int {
-            Teacher teacher = check <Teacher> o;
-            return teacher.timeStamp;
-        });
+    streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(simpleSelect.process, 1000, "inputStream.timeStamp");
 
     inputStream.subscribe((Teacher t) => {
-            streams:StreamEvent[] eventArr = streams:buildStreamEvent(t);
-            // io:println("eventArr: ", eventArr);
+            map keyVal = <map>t;
+            streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
             tmpWindow.process(eventArr);
         });
 }
