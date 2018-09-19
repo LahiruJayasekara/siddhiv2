@@ -73,7 +73,7 @@ public function main(string... args) {
 
 function streamFunc() {
 
-    function (map) outputFunc = (map m) => {
+    function (map) outputFunc = function (map m) {
         // just cast input map into the output type
         OutputRecord o = check <OutputRecord>m;
         outputStream.publish(o);
@@ -121,10 +121,10 @@ function streamFunc() {
     streams:Select select = streams:createSelect(
         outputProcess.process,
         aggregators,
-        (streams:StreamEvent e) => string {
+        function (streams:StreamEvent e) returns string {
             return <string>e.data["inputStream.category"];
         },
-        (streams:StreamEvent e, streams:Aggregator[] aggregatorArray) => map {
+        function (streams:StreamEvent e, streams:Aggregator[] aggregatorArray) returns map {
             streams:Sum iSumAggregator1 = check <streams:Sum>aggregatorArray[0];
             streams:Sum fSumAggregator1 = check <streams:Sum>aggregatorArray[1];
             streams:Count countAggregator1 = check <streams:Count>aggregatorArray[2];
@@ -164,13 +164,13 @@ function streamFunc() {
         }
     );
 
-    streams:Filter filter = streams:createFilter(select.process, (map m) => boolean {
+    streams:Filter filter = streams:createFilter(select.process, function (map m) returns boolean {
             // simplify filter
             return check <int>m["inputStream.intVal"] > getValue();
         }
     );
 
-    inputStream.subscribe((InputRecord i) => {
+    inputStream.subscribe(function (InputRecord i) {
             // make it type unaware and proceed
             map keyVal = <map>i;
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
