@@ -1,14 +1,30 @@
+// Copyright (c) 2018 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+import ballerina/reflect;
 import ballerina/crypto;
 import ballerina/math;
 
 public type Aggregator object {
 
-    public new () {
+    public new() {
 
     }
 
     public function clone() returns Aggregator {
-        Aggregator aggregator = new ();
+        Aggregator aggregator = new();
         return aggregator;
     }
 
@@ -21,7 +37,7 @@ public type Aggregator object {
                 return 0.0;
             }
             any a => {
-                error e = { message : "Unsupported attribute type found" };
+                error e = { message: "Unsupported attribute type found" };
                 return e;
             }
         }
@@ -60,18 +76,23 @@ public type Sum object {
                 return fSum;
             }
             any a => {
-                error e = { message : "Unsupported attribute type found" };
+                error e = { message: "Unsupported attribute type found" };
                 return e;
             }
         }
     }
 
     public function clone() returns Aggregator {
-        Sum sumAggregator = new ();
+        Sum sumAggregator = new();
         return sumAggregator;
     }
 
 };
+
+public function sum() returns Aggregator {
+    Sum sumAggregator = new();
+    return sumAggregator;
+}
 
 public type Average object {
 
@@ -109,19 +130,24 @@ public type Average object {
                 }
             }
             any a => {
-                error e = { message : "Unsupported attribute type found" };
+                error e = { message: "Unsupported attribute type found" };
                 return e;
             }
         }
-        return (count > 0) ? (sum/count) : 0.0;
+        return (count > 0) ? (sum / count) : 0.0;
     }
 
     public function clone() returns Aggregator {
-        Average avgAggregator = new ();
+        Average avgAggregator = new();
         return avgAggregator;
     }
 
 };
+
+public function avg() returns Aggregator {
+    Average avgAggregator = new();
+    return avgAggregator;
+}
 
 public type Count object {
 
@@ -143,11 +169,16 @@ public type Count object {
     }
 
     public function clone() returns Aggregator {
-        Count countAggregator = new ();
+        Count countAggregator = new();
         return countAggregator;
     }
 
 };
+
+public function count() returns Aggregator {
+    Count countAggregator = new();
+    return countAggregator;
+}
 
 public type DistinctCount object {
 
@@ -178,10 +209,15 @@ public type DistinctCount object {
     }
 
     public function clone() returns Aggregator {
-        DistinctCount distinctCountAggregator = new ();
+        DistinctCount distinctCountAggregator = new();
         return distinctCountAggregator;
     }
 };
+
+public function distinctCount() returns Aggregator {
+    DistinctCount distinctCountAggregator = new();
+    return distinctCountAggregator;
+}
 
 
 public type Max object {
@@ -210,8 +246,8 @@ public type Max object {
                     }
                     iMaxQueue.addLast(i);
                     match iMax {
-                        int max => {
-                            iMax = (max < i) ? i : max;
+                        int tempMax => {
+                            iMax = (tempMax < i) ? i : tempMax;
                         }
                         () => {
                             iMax = i;
@@ -248,8 +284,8 @@ public type Max object {
                     }
                     fMaxQueue.addLast(f);
                     match fMax {
-                        float max => {
-                            fMax = (max < f) ? f : max;
+                        float tempMax => {
+                            fMax = (tempMax < f) ? f : tempMax;
                         }
                         () => {
                             fMax = f;
@@ -274,7 +310,7 @@ public type Max object {
                 return fMax;
             }
             any a => {
-                error e = { message : "Unsupported attribute type found" };
+                error e = { message: "Unsupported attribute type found" };
                 return e;
             }
         }
@@ -286,6 +322,11 @@ public type Max object {
     }
 
 };
+
+public function max() returns Aggregator {
+    Max maxAggregator = new();
+    return maxAggregator;
+}
 
 
 public type Min object {
@@ -314,8 +355,8 @@ public type Min object {
                     }
                     iMinQueue.addLast(i);
                     match iMin {
-                        int min => {
-                            iMin = (min > i) ? i : min;
+                        int tempMin => {
+                            iMin = (tempMin > i) ? i : tempMin;
                         }
                         () => {
                             iMin = i;
@@ -352,8 +393,8 @@ public type Min object {
                     }
                     fMinQueue.addLast(f);
                     match fMin {
-                        float min => {
-                            fMin = (min > f) ? f : min;
+                        float tempMin => {
+                            fMin = (tempMin > f) ? f : tempMin;
                         }
                         () => {
                             fMin = f;
@@ -385,11 +426,16 @@ public type Min object {
     }
 
     public function clone() returns Aggregator {
-        Min minAggregator = new ();
+        Min minAggregator = new();
         return minAggregator;
     }
 
 };
+
+public function min() returns Aggregator {
+    Min minAggregator = new();
+    return minAggregator;
+}
 
 
 
@@ -397,7 +443,7 @@ public type StdDev object {
 
     public float mean = 0.0;
     public float stdDeviation = 0.0;
-    public float sum = 0.0;
+    public float sumValue = 0.0;
     public int count = 0;
 
     public new() {
@@ -408,7 +454,7 @@ public type StdDev object {
         float fVal;
         match value {
             int i => {
-                fVal = <float> i;
+                fVal = <float>i;
             }
             float f => {
                 fVal = f;
@@ -425,21 +471,21 @@ public type StdDev object {
             if (count == 0) {
                 return ();
             } else if (count == 1) {
-                sum = fVal;
+                sumValue = fVal;
                 mean = fVal;
                 stdDeviation = 0.0;
                 return 0.0;
             } else {
                 float oldMean = mean;
-                sum += fVal;
-                mean = sum / count;
+                sumValue += fVal;
+                mean = sumValue / count;
                 stdDeviation += (fVal - oldMean) * (fVal - mean);
                 return math:sqrt(stdDeviation / count);
             }
         } else if (eventType == "EXPIRED") {
             count--;
             if (count == 0) {
-                sum = 0.0;
+                sumValue = 0.0;
                 mean = 0.0;
                 stdDeviation = 0.0;
                 return ();
@@ -447,15 +493,15 @@ public type StdDev object {
                 return 0.0;
             } else {
                 float oldMean = mean;
-                sum -= fVal;
-                mean = sum / count;
+                sumValue -= fVal;
+                mean = sumValue / count;
                 stdDeviation -= (fVal - oldMean) * (fVal - mean);
                 return math:sqrt(stdDeviation / count);
             }
         } else if (eventType == "RESET") {
             mean = 0.0;
             stdDeviation = 0.0;
-            sum = 0.0;
+            sumValue = 0.0;
             count = 0;
             return 0.0;
         } else {
@@ -464,11 +510,16 @@ public type StdDev object {
     }
 
     public function clone() returns Aggregator {
-        StdDev stdDevAggregator = new ();
+        StdDev stdDevAggregator = new();
         return stdDevAggregator;
     }
 
 };
+
+public function stdDev() returns Aggregator {
+    StdDev stdDevAggregator = new();
+    return stdDevAggregator;
+}
 
 public type MaxForever object {
 
@@ -484,8 +535,8 @@ public type MaxForever object {
             int i => {
                 if (eventType == "CURRENT" || eventType == "EXPIRED") {
                     match iMax {
-                        int max => {
-                            iMax = (max < i) ? i : max;
+                        int tempMax => {
+                            iMax = (tempMax < i) ? i : tempMax;
                         }
                         () => {
                             iMax = i;
@@ -497,8 +548,8 @@ public type MaxForever object {
             float f => {
                 if (eventType == "CURRENT" || eventType == "EXPIRED") {
                     match fMax {
-                        float max => {
-                            fMax = (max < f) ? f : max;
+                        float tempMax => {
+                            fMax = (tempMax < f) ? f : tempMax;
                         }
                         () => {
                             fMax = f;
@@ -508,18 +559,23 @@ public type MaxForever object {
                 return fMax;
             }
             any a => {
-                error e = { message : "Unsupported attribute type found" };
+                error e = { message: "Unsupported attribute type found" };
                 return e;
             }
         }
     }
 
     public function clone() returns Aggregator {
-        MaxForever maxForeverAggregator = new ();
+        MaxForever maxForeverAggregator = new();
         return maxForeverAggregator;
     }
 
 };
+
+public function maxForever() returns Aggregator {
+    MaxForever maxForeverAggregator = new();
+    return maxForeverAggregator;
+}
 
 public type MinForever object {
 
@@ -535,8 +591,8 @@ public type MinForever object {
             int i => {
                 if (eventType == "CURRENT" || eventType == "EXPIRED") {
                     match iMin {
-                        int min => {
-                            iMin = (min > i) ? i : min;
+                        int tempMin => {
+                            iMin = (tempMin > i) ? i : tempMin;
                         }
                         () => {
                             iMin = i;
@@ -548,8 +604,8 @@ public type MinForever object {
             float f => {
                 if (eventType == "CURRENT" || eventType == "EXPIRED") {
                     match fMin {
-                        float min => {
-                            fMin = (min > f) ? f : min;
+                        float tempMin => {
+                            fMin = (tempMin > f) ? f : tempMin;
                         }
                         () => {
                             fMin = f;
@@ -559,24 +615,20 @@ public type MinForever object {
                 return fMin;
             }
             any a => {
-                error e = { message : "Unsupported attribute type found" };
+                error e = { message: "Unsupported attribute type found" };
                 return e;
             }
         }
     }
 
     public function clone() returns Aggregator {
-        MinForever minForeverAggregator = new ();
+        MinForever minForeverAggregator = new();
         return minForeverAggregator;
     }
 
 };
 
-
-public function createSumAggregator() returns Sum {
-    Sum sumAggregator = new ();
-    return sumAggregator;
+public function minForever() returns Aggregator {
+    MinForever minForeverAggregator = new();
+    return minForeverAggregator;
 }
-
-
-
