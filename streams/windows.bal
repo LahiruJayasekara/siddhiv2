@@ -452,13 +452,13 @@ public type ExternalTimeWindow object {
 
             while (streamEventChunk.hasNext()) {
                 StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
-                int currentTime = getInt(streamEvent.data[timeStamp]);
+                int currentTime = getTimeStamp(streamEvent.data[timeStamp]);
                 //io:println("currTime ",currentTime);
                 expiredEventQueue.resetToFront();
 
                 while (expiredEventQueue.hasNext()) {
                     StreamEvent expiredEvent = check <StreamEvent>expiredEventQueue.next();
-                    int timeDiff = (getInt(expiredEvent.data[timeStamp]) - currentTime) + timeInMillis;
+                    int timeDiff = (getTimeStamp(expiredEvent.data[timeStamp]) - currentTime) + timeInMillis;
                     if (timeDiff <= 0) {
                         expiredEventQueue.removeCurrent();
                         expiredEvent.timestamp = currentTime;
@@ -488,9 +488,8 @@ public type ExternalTimeWindow object {
         }
     }
 
-    public function getInt(any val) returns (int){
-        var intResult = <int>val;
-        match intResult {
+    public function getTimeStamp(any val) returns (int){
+        match val {
             int value => return value;
             any => {
                 error err = { message: "external time stamp should be of type int" };
