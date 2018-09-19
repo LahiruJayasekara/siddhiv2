@@ -461,7 +461,7 @@ public type ExternalTimeWindow object {
                     int timeDiff = (getInt(expiredEvent.data[timeStamp]) - currentTime) + timeInMillis;
                     if (timeDiff <= 0) {
                         expiredEventQueue.removeCurrent();
-                        expiredEvent.data[timeStamp] = currentTime;
+                        expiredEvent.timestamp = currentTime;
                         streamEventChunk.insertBeforeCurrent(expiredEvent);
                     } else {
                         expiredEventQueue.resetToFront();
