@@ -440,7 +440,6 @@ public type ExternalTimeWindow object {
         expiredEventQueue = new;
     }
 
-
     public function process(StreamEvent[] streamEvents) {
         LinkedList streamEventChunk = new;
         lock {
@@ -452,13 +451,12 @@ public type ExternalTimeWindow object {
 
             while (streamEventChunk.hasNext()) {
                 StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
-                int currentTime = getTimeStamp(streamEvent.data[timeStamp]);
-                //io:println("currTime ",currentTime);
+                int currentTime = getTimestamp(streamEvent.data[timeStamp]);
                 expiredEventQueue.resetToFront();
 
                 while (expiredEventQueue.hasNext()) {
                     StreamEvent expiredEvent = check <StreamEvent>expiredEventQueue.next();
-                    int timeDiff = (getTimeStamp(expiredEvent.data[timeStamp]) - currentTime) + timeInMillis;
+                    int timeDiff = (getTimestamp(expiredEvent.data[timeStamp]) - currentTime) + timeInMillis;
                     if (timeDiff <= 0) {
                         expiredEventQueue.removeCurrent();
                         expiredEvent.timestamp = currentTime;
@@ -469,9 +467,9 @@ public type ExternalTimeWindow object {
                     }
                 }
 
-                if (streamEvent.eventType == "CURRENT") {
+                if (streamEvent.eventType == CURRENT) {
                     StreamEvent clonedEvent = streamEvent.clone();
-                    clonedEvent.eventType = "EXPIRED";
+                    clonedEvent.eventType = EXPIRED;
                     expiredEventQueue.addLast(clonedEvent);
                 }
                 expiredEventQueue.resetToFront();
@@ -488,15 +486,14 @@ public type ExternalTimeWindow object {
         }
     }
 
-    public function getTimeStamp(any val) returns (int){
+    public function getTimestamp(any val) returns (int){
         match val {
             int value => return value;
             any => {
-                error err = { message: "external time stamp should be of type int" };
+                error err = { message: "external timestamp should be of type int" };
                 throw err;
             }
         }
-
     }
 };
 

@@ -1,8 +1,9 @@
 public type EventType "CURRENT"|"EXPIRED"|"ALL"|"RESET"|"TIMER";
 public type JoinType "INNER"|"LEFT"|"RIGHT"|"FULL";
 public string OUTPUT = "OUTPUT";
-public string RESET = "RESET";
-public string EXPIRED = "EXPIRED";
+public EventType RESET = "RESET";
+public EventType EXPIRED = "EXPIRED";
 public string DEFAULT = "DEFAULT";
+public EventType CURRENT = "CURRENT";
 public string DELIMITER = ".";
 public string DELIMITER_REGEX = "\\.";
