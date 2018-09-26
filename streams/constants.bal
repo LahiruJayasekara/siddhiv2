@@ -5,5 +5,6 @@ public EventType RESET = "RESET";
 public EventType EXPIRED = "EXPIRED";
 public string DEFAULT = "DEFAULT";
 public EventType CURRENT = "CURRENT";
+public EventType TIMER = "TIMER";
 public string DELIMITER = ".";
 public string DELIMITER_REGEX = "\\.";

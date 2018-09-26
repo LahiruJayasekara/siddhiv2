@@ -497,7 +497,8 @@ public type ExternalTimeWindow object {
     }
 };
 
-public function externalTimeWindow(function(StreamEvent[]) nextProcessPointer, int timeLength, string timeStamp) returns ExternalTimeWindow {
+public function externalTimeWindow(function(StreamEvent[]) nextProcessPointer, int timeLength, string timeStamp)
+                    returns ExternalTimeWindow {
 
     ExternalTimeWindow timeWindow1 = new(nextProcessPointer, timeLength, timeStamp);
     return timeWindow1;
@@ -522,7 +523,8 @@ public type ExternalTimeBatchWindow object {
     public boolean storeExpiredEvents = false;
     public boolean outputExpectsExpiredEvents = false;
 
-    public new (nextProcessorPointer, timeToKeep, timeStamp, startTime, schedulerTimeout, replaceTimestampWithBatchEndTime) {
+    public new (nextProcessorPointer, timeToKeep, timeStamp, startTime, schedulerTimeout,
+                replaceTimestampWithBatchEndTime) {
         currentEventChunk = new();
         expiredEventChunk = new;
         if(startTime != -1){
@@ -531,7 +533,7 @@ public type ExternalTimeBatchWindow object {
     }
 
     public function invokeProcess() returns error? {
-        StreamEvent timerEvent = new (("timer", {}), "TIMER", time:currentTime().time);
+        StreamEvent timerEvent = new (("timer", {}), TIMER, time:currentTime().time);
         StreamEvent[] timerEventWrapper = [];
         timerEventWrapper[0] = timerEvent;
         process(timerEventWrapper);
@@ -557,7 +559,7 @@ public type ExternalTimeBatchWindow object {
 
                 StreamEvent currStreamEvent = check <StreamEvent > streamEventChunk.next();
 
-                if (currStreamEvent.eventType == "TIMER") {
+                if (currStreamEvent.eventType == TIMER) {
                     if (lastScheduledTime <= currStreamEvent.timestamp){
                         // implies that there have not been any more events after this schedule has been done.
                         if (!flushed) {
@@ -576,7 +578,7 @@ public type ExternalTimeBatchWindow object {
                     }
                     continue;
 
-                } else if (currStreamEvent.eventType != "CURRENT") {
+                } else if (currStreamEvent.eventType != CURRENT) {
                     continue;
                 }
 
@@ -631,7 +633,7 @@ public type ExternalTimeBatchWindow object {
 
         if(resetEvent == null){
             resetEvent = currStreamEvent.clone();
-            resetEvent.eventType = "RESET";
+            resetEvent.eventType = RESET;
         }
     }
 
@@ -674,7 +676,7 @@ public type ExternalTimeBatchWindow object {
                 while (currentEventChunk.hasNext()) {
                     StreamEvent currentEvent = check<StreamEvent >currentEventChunk.next();
                     StreamEvent toExpireEvent = currentEvent.clone();
-                    toExpireEvent.eventType = "EXPIRED";
+                    toExpireEvent.eventType = EXPIRED;
                     expiredEventChunk.addLast(toExpireEvent);
                 }
             }
@@ -715,7 +717,7 @@ public type ExternalTimeBatchWindow object {
                     }
 
                     StreamEvent toSendEvent = expiredEvent.clone();
-                    toSendEvent.eventType = "CURRENT";
+                    toSendEvent.eventType = CURRENT;
                     sentEventChunk.addLast(toSendEvent);
                 }
             }
@@ -726,7 +728,7 @@ public type ExternalTimeBatchWindow object {
                     streamEvent.timestamp = currentTime;
                     newEventChunk.addLast(streamEvent);
                 }
-                ()=>{
+                () => {
 
                 }
             }
@@ -743,7 +745,7 @@ public type ExternalTimeBatchWindow object {
                 while (currentEventChunk.hasNext()) {
                     StreamEvent currentEvent = check <StreamEvent >currentEventChunk.next();
                     StreamEvent toExpireEvent = currentEvent.clone();
-                    toExpireEvent.eventType = "EXPIRED";
+                    toExpireEvent.eventType = EXPIRED;
                     expiredEventChunk.addLast(toExpireEvent);
                 }
             }
@@ -788,8 +790,7 @@ public type ExternalTimeBatchWindow object {
     }
 
     public function getInt(any val) returns (int){
-        var intResult = <int>val;
-        match intResult {
+        match val {
             int value => return value;
             any => {
                 error err = { message: "external timestamp should be of type int" };
@@ -799,8 +800,10 @@ public type ExternalTimeBatchWindow object {
     }
 };
 
-public function externalTimeBatchWindow(function(StreamEvent[]) nextProcessPointer, int time, string timeStamp, int startTime = -1, int timeOut = -1, boolean replaceTimestampWithBatchEndTime = false)
-returns ExternalTimeBatchWindow {
-    ExternalTimeBatchWindow timeWindow1 = new(nextProcessPointer, time, timeStamp, startTime, timeOut, replaceTimestampWithBatchEndTime);
+public function externalTimeBatchWindow(function(StreamEvent[]) nextProcessPointer, int time, string timeStamp, int
+    startTime = -1, int timeOut = -1, boolean replaceTimestampWithBatchEndTime = false)
+                    returns ExternalTimeBatchWindow {
+    ExternalTimeBatchWindow timeWindow1 = new(nextProcessPointer, time, timeStamp, startTime, timeOut,
+        replaceTimestampWithBatchEndTime);
     return timeWindow1;
 }
