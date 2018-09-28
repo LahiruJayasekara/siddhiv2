@@ -497,7 +497,7 @@ public type ExternalTimeWindow object {
     }
 };
 
-public function externalTimeWindow(function(StreamEvent[]) nextProcessPointer, int timeLength, string timeStamp)
+public function externalTimeWindow(function(StreamEvent[]) nextProcessPointer, string timeStamp, int timeLength)
                     returns ExternalTimeWindow {
 
     ExternalTimeWindow timeWindow1 = new(nextProcessPointer, timeLength, timeStamp);
@@ -800,7 +800,7 @@ public type ExternalTimeBatchWindow object {
     }
 };
 
-public function externalTimeBatchWindow(function(StreamEvent[]) nextProcessPointer, int time, string timeStamp, int
+public function externalTimeBatchWindow(function(StreamEvent[]) nextProcessPointer, string timeStamp, int time, int
     startTime = -1, int timeOut = -1, boolean replaceTimestampWithBatchEndTime = false)
                     returns ExternalTimeBatchWindow {
     ExternalTimeBatchWindow timeWindow1 = new(nextProcessPointer, time, timeStamp, startTime, timeOut,

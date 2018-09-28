@@ -99,7 +99,7 @@ function foo() {
             };
         });
 
-    streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(select.process, 1000, "inputStream.timeStamp");
+    streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(select.process, "inputStream.timeStamp", 1000);
 
     inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;
