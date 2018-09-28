@@ -42,10 +42,10 @@ TeacherOutput[] globalEmployeeArray = [];
 public function main(string... args) {
 
     Teacher[] teachers = [];
-    Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1000 };
-    Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1400 };
-    Teacher t3 = { name: "Naveen", age: 35, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 3000      };
-    Teacher t4 = { name: "Amal", age: 50, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 3200 };
+    Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1000};
+    Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1400};
+    Teacher t3 = { name: "Naveen", age: 35, status: "single", batch: "LK2014", school:"Hindu College", timeStamp: 3000};
+    Teacher t4 = { name: "Amal", age: 50, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 3200};
     teachers[0] = t1;
     teachers[1] = t2;
     teachers[2] = t3;
@@ -74,7 +74,7 @@ public function main(string... args) {
 
 function foo() {
 
-    function (map) outputFunc = (map m) => {
+    function (map) outputFunc = function(map m) {
         // just cast input map into the output type
         TeacherOutput t = check <TeacherOutput>m;
         outputStream.publish(t);
@@ -82,22 +82,26 @@ function foo() {
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
 
-    streams:Sum sumAggregator = new();
+    streams:Sum iSumAggregator = new();
 
-    streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
-        (streams:StreamEvent e) => map {
+    streams:Aggregator[] aggregators = [];
+    aggregators[0] = iSumAggregator;
+
+    streams:Select select = streams:createSelect(outputProcess.process, aggregators,
+        (),
+        function(streams:StreamEvent e, streams:Aggregator[] aggregatorArray) returns map {
+            streams:Sum iSumAggregator1 = check <streams:Sum>aggregatorArray[0];
             // got rid of type casting
             return {
                 "name": e.data["inputStream.name"],
                 "age": e.data["inputStream.age"],
-                "sumAge": sumAggregator.process(e.data["inputStream.age"], e.eventType)
+                "sumAge": iSumAggregator.process(e.data["inputStream.age"], e.eventType)
             };
-        }
-    );
+        });
 
-    streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(simpleSelect.process, 1000, "inputStream.timeStamp");
+    streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(select.process, 1000, "inputStream.timeStamp");
 
-    inputStream.subscribe((Teacher t) => {
+    inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
             tmpWindow.process(eventArr);
