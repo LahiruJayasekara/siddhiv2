@@ -59,7 +59,7 @@ public function main(string... args) {
 
 function streamFunc() {
 
-    function (map) outputFunc = (map m) => {
+    function (map) outputFunc = function (map m) {
         // just cast input map into the output type
         OutputRecord o = check <OutputRecord>m;
         outputStream.publish(o);
@@ -74,7 +74,7 @@ function streamFunc() {
     streams:Aggregator[] aggregators = [];
     aggregators[0] = iSumAggregator;
 
-    streams:Filter outFilter = streams:createFilter(outputProcess.process, (map m) => boolean {
+    streams:Filter outFilter = streams:createFilter(outputProcess.process, function (map m) returns boolean {
             // simplify filter, note the "OUTPUT" prefix
             return check <int>m["OUTPUT.sum"] > getValue();
         }
@@ -82,10 +82,10 @@ function streamFunc() {
 
     // create selector
     streams:Select select = streams:createSelect(outFilter.process, aggregators,
-        (streams:StreamEvent e) => string {
+        function (streams:StreamEvent e) returns string {
             return <string>e.data["inputStream.category"];
         },
-        (streams:StreamEvent e, streams:Aggregator[] aggregatorArray) => map {
+        function (streams:StreamEvent e, streams:Aggregator[] aggregatorArray) returns map {
             streams:Sum iSumAggregator1 = check <streams:Sum>aggregatorArray[0];
             // got rid of type casting
             return {
@@ -96,7 +96,7 @@ function streamFunc() {
         }
     );
 
-    inputStream.subscribe((InputRecord i) => {
+    inputStream.subscribe(function (InputRecord i) {
             // make it type unaware and proceed
             map keyVal = <map>i;
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
