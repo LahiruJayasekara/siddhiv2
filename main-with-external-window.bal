@@ -74,7 +74,7 @@ public function main(string... args) {
 
 function foo() {
 
-    function (map) outputFunc = (map m) => {
+    function (map) outputFunc = function (map m) {
         // just cast input map into the output type
         TeacherOutput t = check <TeacherOutput>m;
         outputStream.publish(t);
@@ -85,7 +85,7 @@ function foo() {
     streams:Sum sumAggregator = new();
 
     streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
-        (streams:StreamEvent e) => map {
+        function (streams:StreamEvent e) returns map {
             // got rid of type casting
             return {
                 "name": e.data["inputStream.name"],
@@ -97,7 +97,7 @@ function foo() {
 
     streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(simpleSelect.process, 1000, "inputStream.timeStamp");
 
-    inputStream.subscribe((Teacher t) => {
+    inputStream.subscribe(function (Teacher t) {
             map keyVal = <map>t;
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
             tmpWindow.process(eventArr);

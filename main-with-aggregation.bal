@@ -77,7 +77,7 @@ public function main(string... args) {
 
 function foo() {
 
-    function (map) outputFunc = (map m) => {
+    function (map) outputFunc = function (map m) {
         // just cast input map into the output type
         TeacherOutput t = check <TeacherOutput>m;
         outputStream.publish(t);
@@ -88,7 +88,7 @@ function foo() {
     streams:Sum sumAggregator = new();
 
     streams:SimpleSelect simpleSelect = streams:createSimpleSelect(outputProcess.process,
-        (streams:StreamEvent e) => map {
+        function (streams:StreamEvent e) returns map {
             // got rid of type casting
             return {
                 "name": e.data["inputStream.name"],
@@ -98,13 +98,13 @@ function foo() {
         }
     );
 
-    streams:Filter filter = streams:createFilter(simpleSelect.process, (map m) => boolean {
+    streams:Filter filter = streams:createFilter(simpleSelect.process, function (map m) returns boolean {
             // simplify filter
             return check <int>m["inputStream.age"] > 25;
         }
     );
 
-    inputStream.subscribe((Teacher t) => {
+    inputStream.subscribe(function (Teacher t) {
             // make it type unaware and proceed
             map keyVal = <map>t;
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
