@@ -45,7 +45,7 @@ stream<Stock> stockStream;
 stream<Twitter> twitterStream;
 stream<StockWithPrice> stockWithPriceStream;
 
-public function main(string... args) {
+public function main() {
     joinFunc();
 
     Stock s1 = { symbol: "WSO2", price: 55.6, volume: 100 };

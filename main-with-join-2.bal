@@ -48,7 +48,7 @@ stream<OutputRecord> outputStream;
 int index = 0;
 OutputRecord[] outputDataArray = [];
 
-public function main(string... args) {
+public function main() {
     InputRecordA[] recordsA = [];
     recordsA[0] = { id: "ANX_2", category: "ANX" };
     recordsA[1] = { id: "ANX_1", category: "ANX" };

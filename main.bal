@@ -37,7 +37,7 @@ stream<TeacherOutput> outputStream;
 
 TeacherOutput[] globalEmployeeArray = [];
 
-public function main(string... args) {
+public function main() {
 
     Teacher[] teachers = [];
     Teacher t1 = { name: "Raja", age: 25, status: "single", batch: "LK2014", school: "Hindu College" };
