@@ -8,7 +8,6 @@ public type OrderBy object {
     }
 
     public function process(StreamEvent[] streamEvents) {
-        io:println(streamEvents);
         topDownMergeSort(streamEvents, sortFieldMetadata);
         nextProcessorPointer(streamEvents);
     }
