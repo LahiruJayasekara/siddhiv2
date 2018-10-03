@@ -56,7 +56,7 @@ function testJoinQuery() {
 }
 
 
-public function main(string... args) {
+public function main() {
     testJoinQuery();
 
     Stock s1 = {symbol:"WSO2", price:55.6, volume:100};
