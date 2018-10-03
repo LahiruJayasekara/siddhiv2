@@ -39,7 +39,7 @@ stream<TeacherOutput> outputStream;
 
 TeacherOutput[] globalEmployeeArray = [];
 
-public function main(string... args) {
+public function main() {
 
     Teacher[] teachers = [];
     Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1000};
@@ -74,7 +74,7 @@ public function main(string... args) {
 
 function foo() {
 
-    function (map) outputFunc = function(map m) {
+    function (map) outputFunc = function (map m) {
         // just cast input map into the output type
         TeacherOutput t = check <TeacherOutput>m;
         outputStream.publish(t);
@@ -101,7 +101,7 @@ function foo() {
 
     streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(select.process, "inputStream.timeStamp", 1000);
 
-    inputStream.subscribe(function(Teacher t) {
+    inputStream.subscribe(function (Teacher t) {
             map keyVal = <map>t;
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
             tmpWindow.process(eventArr);
