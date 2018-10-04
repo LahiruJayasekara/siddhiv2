@@ -17,6 +17,7 @@
 import ballerina/runtime;
 import ballerina/io;
 import streams;
+import ballerina/time;
 
 type Teacher record {
     string name;
@@ -39,33 +40,36 @@ stream<TeacherOutput> outputStream;
 
 TeacherOutput[] globalEmployeeArray = [];
 
-public function main() {
+public function main(string... args) {
 
     Teacher[] teachers = [];
-    Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1000};
-    Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1400};
-    Teacher t3 = { name: "Naveen", age: 35, status: "single", batch: "LK2014", school:"Hindu College", timeStamp: 3000};
-    Teacher t4 = { name: "Amal", age: 50, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 3200};
+    Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1400 };
+    Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1800 };
+    Teacher t3 = { name: "Naveen", age: 35, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 2100 };
+    Teacher t4 = { name: "Amal", age: 50, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 5000 };
+    //Teacher t5 = { name: "Nimal", age: 50, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 4000 };
+
     teachers[0] = t1;
     teachers[1] = t2;
     teachers[2] = t3;
     teachers[3] = t4;
-
+    //teachers[4] = t5;
     foo();
 
     outputStream.subscribe(printTeachers);
     foreach t in teachers {
         inputStream.publish(t);
+        runtime:sleep(500);
     }
 
-    runtime:sleep(1000);
+    runtime:sleep(2000);
 
     io:println("output: ", globalEmployeeArray);
 }
 
 
 //  ------------- Query to be implemented -------------------------------------------------------
-//  from teacherStream window externalTime(Teacher.timeStamp, 1000)
+//  from teacherStream window externalTimeBatch(Teacher.timeStamp, 1000, 1000, 200)
 //        select name, age, sum(age) as sumAge
 //        => (TeacherOutput[] t) {
 //            outPutStream.publish(t);
@@ -75,12 +79,12 @@ public function main() {
 function foo() {
 
     function (map) outputFunc = function (map m) {
-        // just cast input map into the output type
         TeacherOutput t = check <TeacherOutput>m;
         outputStream.publish(t);
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
+
 
     streams:Sum iSumAggregator = new();
 
@@ -99,9 +103,10 @@ function foo() {
             };
         });
 
-    streams:ExternalTimeWindow tmpWindow = streams:externalTimeWindow(select.process, "inputStream.timeStamp", 1000);
+    streams:ExternalTimeBatchWindow tmpWindow = streams:externalTimeBatchWindow(select.process,
+        "inputStream.timeStamp", 1000, startTime = 1000, timeOut = 1200);
 
-    inputStream.subscribe(function (Teacher t) {
+    inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;
             streams:StreamEvent[] eventArr = streams:buildStreamEvent(keyVal, "inputStream");
             tmpWindow.process(eventArr);
