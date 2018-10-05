@@ -45,7 +45,7 @@ stream<Stock> stockStream;
 stream<Twitter> twitterStream;
 stream<StockWithPrice> stockWithPriceStream;
 
-public function main() {
+public function main(string... args) {
     joinFunc();
 
     Stock s1 = { symbol: "WSO2", price: 55.6, volume: 100 };
@@ -70,10 +70,12 @@ public function main() {
 
 function joinFunc() {
 
-    function (map) outputFunc = function (map m) {
-        // just cast input map into the output type
-        StockWithPrice o = check <StockWithPrice>m;
-        stockWithPriceStream.publish(o);
+    function (map[]) outputFunc = function (map[] events) {
+        foreach m in events {
+            // just cast input map into the output type
+            StockWithPrice o = check <StockWithPrice>m;
+            stockWithPriceStream.publish(o);
+        }
     };
 
     // Output processor
