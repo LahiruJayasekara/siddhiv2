@@ -68,6 +68,20 @@ public function main(string... args) {
     io:println(globalEventsArray);
 }
 
+
+//  forever {
+//      from stockStream window lengthWindow(1)
+//      join twitterStream window lengthWindow(1)
+//      on stockStream.symbol == twitterStream.company
+//          select stockStream.symbol as symbol, twitterStream.tweet as tweet, stockStream.price as price
+//          => (StockWithPrice[] emp) {
+//                  foreach e in emp {
+//                      stockWithPriceStream.publish(e);
+//          }
+//      }
+//  }
+//
+
 function joinFunc() {
 
     function (map[]) outputFunc = function (map[] events) {
