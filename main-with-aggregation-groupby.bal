@@ -119,7 +119,7 @@ function foo() {
 
     //   streams:Window tmpWindow = streams:lengthBatchWindow(select.process, 5);
 
-    streams:Window tmpWindow = streams:timeWindow(select.process, 1000);
+    streams:Window tmpWindow = streams:timeWindow(1000, nextProcessPointer = select.process);
 
     //   streams:Window tmpWindow = streams:timeBatchWindow(select.process, 1000);
 
