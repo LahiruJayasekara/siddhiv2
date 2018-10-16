@@ -79,9 +79,11 @@ public function main(string... args) {
 
 function foo() {
 
-    function (map) outputFunc = function(map m) {
-        TeacherOutput t = check <TeacherOutput>m;
-        outputStream.publish(t);
+    function (map[]) outputFunc = function(map[] m) {
+        foreach x in m {
+            TeacherOutput t = check <TeacherOutput>x;
+            outputStream.publish(t);
+        }
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
@@ -102,7 +104,8 @@ function foo() {
             };
         });
 
-    streams:UniqueLengthWindow tmpWindow = streams:uniqueLengthWindow(select.process, "inputStream.age", 3);
+    streams:UniqueLengthWindow tmpWindow = streams:uniqueLengthWindow("inputStream.age", 3,
+        nextProcessPointer = select.process);
 
     inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;

@@ -38,7 +38,7 @@ public type LengthWindow object {
 
     public int size;
     public LinkedList linkedList;
-    public function (StreamEvent[]) nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessorPointer;
 
     public new(nextProcessorPointer, size) {
         linkedList = new;
@@ -68,7 +68,14 @@ public type LengthWindow object {
             expiredVeresionOfEvent.eventType = "EXPIRED";
             linkedList.addLast(expiredVeresionOfEvent);
         }
-        nextProcessorPointer(outputEvents);
+        match (nextProcessorPointer) {
+            function (StreamEvent[]) nxtProc => {
+                nxtProc(outputEvents);
+            }
+            () => {
+                //do nothing
+            }
+        }
     }
 
     public function getCandidateEvents(
@@ -96,7 +103,7 @@ public type LengthWindow object {
     }
 };
 
-public function lengthWindow(function (StreamEvent[]) nextProcessorPointer, int length)
+public function lengthWindow(int length, function (StreamEvent[])? nextProcessorPointer = ())
                     returns LengthWindow {
     LengthWindow lengthWindow1 = new(nextProcessorPointer, length);
     return lengthWindow1;
@@ -107,7 +114,7 @@ public type TimeWindow object {
     public int timeInMillis;
     public LinkedList expiredEventQueue;
     public LinkedList timerQueue;
-    public function (StreamEvent[]) nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessorPointer;
     public int lastTimestamp = -0x8000000000000000;
 
     public new (nextProcessorPointer, timeInMillis) {
@@ -159,15 +166,23 @@ public type TimeWindow object {
             }
             expiredEventQueue.resetToFront();
         }
-        if (streamEventChunk.getSize() != 0) {
-            StreamEvent[] events = [];
-            streamEventChunk.resetToFront();
-            while (streamEventChunk.hasNext()) {
-                StreamEvent streamEvent = check <StreamEvent> streamEventChunk.next();
-                events[lengthof events] = streamEvent;
+        match (nextProcessorPointer) {
+            function (StreamEvent[]) nxtProc => {
+                if (streamEventChunk.getSize() != 0) {
+                    StreamEvent[] events = [];
+                    streamEventChunk.resetToFront();
+                    while (streamEventChunk.hasNext()) {
+                        StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
+                        events[lengthof events] = streamEvent;
+                    }
+                    nxtProc(events);
+                }
             }
-            nextProcessorPointer(events);
+            () => {
+                //do nothing
+            }
         }
+
     }
 
     public function invokeProcess() returns error? {
@@ -211,7 +226,7 @@ public type TimeWindow object {
     }
 };
 
-public function timeWindow(function(StreamEvent[]) nextProcessPointer, int timeLength)
+public function timeWindow(int timeLength, function(StreamEvent[])? nextProcessPointer = ())
                     returns TimeWindow {
     TimeWindow timeWindow1 = new(nextProcessPointer, timeLength);
     return timeWindow1;
@@ -223,7 +238,7 @@ public type LengthBatchWindow object {
     public StreamEvent? resetEvent;
     public LinkedList currentEventQueue;
     public LinkedList? expiredEventQueue;
-    public function (StreamEvent[]) nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessorPointer;
 
     public new (nextProcessorPointer, length) {
         currentEventQueue = new();
@@ -271,16 +286,23 @@ public type LengthBatchWindow object {
             }
         }
 
-        streamEventChunks.resetToFront();
-        while streamEventChunks.hasNext() {
-            StreamEvent[] events = [];
-            LinkedList streamEventChunk = check <LinkedList> streamEventChunks.next();
-            streamEventChunk.resetToFront();
-            while (streamEventChunk.hasNext()) {
-                StreamEvent streamEvent = check <StreamEvent> streamEventChunk.next();
-                events[lengthof events] = streamEvent;
+        match (nextProcessorPointer) {
+            function (StreamEvent[]) nxtProc => {
+                streamEventChunks.resetToFront();
+                while streamEventChunks.hasNext() {
+                    StreamEvent[] events = [];
+                    LinkedList streamEventChunk = check <LinkedList>streamEventChunks.next();
+                    streamEventChunk.resetToFront();
+                    while (streamEventChunk.hasNext()) {
+                        StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
+                        events[lengthof events] = streamEvent;
+                    }
+                    nxtProc(events);
+                }
             }
-            nextProcessorPointer(events);
+            () => {
+                //do nothing
+            }
         }
     }
 
@@ -309,7 +331,7 @@ public type LengthBatchWindow object {
     }
 };
 
-public function lengthBatchWindow(function(StreamEvent[]) nextProcessPointer, int length)
+public function lengthBatchWindow(int length, function(StreamEvent[])? nextProcessPointer = ())
                     returns LengthBatchWindow {
     LengthBatchWindow lengthBatch = new(nextProcessPointer, length);
     return lengthBatch;
@@ -323,7 +345,7 @@ public type TimeBatchWindow object {
     public LinkedList? expiredEventQueue;
     public StreamEvent? resetEvent;
     public task:Timer? timer;
-    public function (StreamEvent[]) nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessorPointer;
 
     public new(nextProcessorPointer, timeInMilliSeconds) {
         currentEventQueue = new();
@@ -383,14 +405,21 @@ public type TimeBatchWindow object {
             }
             currentEventQueue.clear();
         }
-        if (outputStreamEvents.getSize() != 0) {
-            StreamEvent[] events = [];
-            outputStreamEvents.resetToFront();
-            while (outputStreamEvents.hasNext()) {
-                StreamEvent streamEvent = check <StreamEvent> outputStreamEvents.next();
-                events[lengthof events] = streamEvent;
+        match nextProcessorPointer {
+            function (StreamEvent[]) nxtProc => {
+                if (outputStreamEvents.getSize() != 0) {
+                    StreamEvent[] events = [];
+                    outputStreamEvents.resetToFront();
+                    while (outputStreamEvents.hasNext()) {
+                        StreamEvent streamEvent = check <StreamEvent>outputStreamEvents.next();
+                        events[lengthof events] = streamEvent;
+                    }
+                    nxtProc(events);
+                }
             }
-            nextProcessorPointer(events);
+            () => {
+                // do nothing
+            }
         }
     }
 
@@ -423,7 +452,7 @@ public type TimeBatchWindow object {
     }
 };
 
-public function timeBatchWindow(function(StreamEvent[]) nextProcessPointer, int time)
+public function timeBatchWindow(int time, function(StreamEvent[])? nextProcessPointer = ())
                     returns TimeBatchWindow {
     TimeBatchWindow timeBatch = new(nextProcessPointer, time);
     return timeBatch;
@@ -433,7 +462,7 @@ public type ExternalTimeWindow object {
 
     public int timeInMillis;
     public LinkedList expiredEventQueue;
-    public function (StreamEvent[]) nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessorPointer;
     public string timeStamp;
 
     public new (nextProcessorPointer, timeInMillis, timeStamp) {
@@ -475,14 +504,21 @@ public type ExternalTimeWindow object {
                 expiredEventQueue.resetToFront();
             }
         }
-        if (streamEventChunk.getSize() != 0) {
-            StreamEvent[] events = [];
-            streamEventChunk.resetToFront();
-            while (streamEventChunk.hasNext()) {
-                StreamEvent streamEvent = check <StreamEvent> streamEventChunk.next();
-                events[lengthof events] = streamEvent;
+        match nextProcessorPointer {
+            function (StreamEvent[]) nxtProc => {
+                if (streamEventChunk.getSize() != 0) {
+                    StreamEvent[] events = [];
+                    streamEventChunk.resetToFront();
+                    while (streamEventChunk.hasNext()) {
+                        StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
+                        events[lengthof events] = streamEvent;
+                    }
+                    nxtProc(events);
+                }
             }
-            nextProcessorPointer(events);
+            () => {
+                //do nothing
+            }
         }
     }
 
@@ -497,7 +533,7 @@ public type ExternalTimeWindow object {
     }
 };
 
-public function externalTimeWindow(function(StreamEvent[]) nextProcessPointer, string timeStamp, int timeLength)
+public function externalTimeWindow(string timeStamp, int timeLength, function(StreamEvent[])? nextProcessPointer = ())
                     returns ExternalTimeWindow {
 
     ExternalTimeWindow timeWindow1 = new(nextProcessPointer, timeLength, timeStamp);
@@ -518,7 +554,7 @@ public type ExternalTimeBatchWindow object {
     public int lastScheduledTime;
     public int lastCurrentEventTime = 0;
     public task:Timer? timer;
-    public function (StreamEvent[]) nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessorPointer;
     public string timeStamp;
     public boolean storeExpiredEvents = false;
     public boolean outputExpectsExpiredEvents = false;
@@ -610,12 +646,19 @@ public type ExternalTimeBatchWindow object {
             }
         }
 
-        if (complexEventChunks.getSize() != 0) {
-            while (complexEventChunks.hasNext()) {
-                StreamEvent [] streamEvent = check <StreamEvent []> complexEventChunks.next();
-                foreach event in streamEvent{
+        match nextProcessorPointer {
+            function (StreamEvent[]) nxtProc => {
+                if (complexEventChunks.getSize() != 0) {
+                    while (complexEventChunks.hasNext()) {
+                        StreamEvent[] streamEvent = check <StreamEvent[]>complexEventChunks.next();
+                        foreach event in streamEvent{
+                        }
+                        nxtProc(streamEvent);
+                    }
                 }
-                nextProcessorPointer(streamEvent);
+            }
+            () => {
+                //do nothing
             }
         }
     }
@@ -800,9 +843,9 @@ public type ExternalTimeBatchWindow object {
     }
 };
 
-public function externalTimeBatchWindow(function(StreamEvent[]) nextProcessPointer, string timestamp, int time, int
-    startTime = -1, int timeOut = -1, boolean replaceTimestampWithBatchEndTime = false)
-                    returns ExternalTimeBatchWindow {
+public function externalTimeBatchWindow(string timestamp, int time, int
+    startTime = -1, int timeOut = -1, boolean replaceTimestampWithBatchEndTime = false, function(StreamEvent[])?
+    nextProcessPointer = ()) returns ExternalTimeBatchWindow {
     ExternalTimeBatchWindow timeWindow1 = new(nextProcessPointer, time, timestamp, startTime, timeOut,
         replaceTimestampWithBatchEndTime);
     return timeWindow1;
@@ -814,7 +857,7 @@ public type TimeLengthWindow object {
     public int length;
     private int count = 0;
     public LinkedList expiredEventChunk;
-    public function (StreamEvent[]) nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessorPointer;
     public task:Timer? timer;
 
     public new (nextProcessorPointer, timeInMilliSeconds, length) {
@@ -872,14 +915,22 @@ public type TimeLengthWindow object {
 
             }
         }
-        if (streamEventChunk.getSize() != 0) {
-            StreamEvent[] events = [];
-            streamEventChunk.resetToFront();
-            while (streamEventChunk.hasNext()) {
-                StreamEvent streamEvent = check <StreamEvent> streamEventChunk.next();
-                events[lengthof events] = streamEvent;
+
+        match nextProcessorPointer {
+            function (StreamEvent[]) nxtProc => {
+                if (streamEventChunk.getSize() != 0) {
+                    StreamEvent[] events = [];
+                    streamEventChunk.resetToFront();
+                    while (streamEventChunk.hasNext()) {
+                        StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
+                        events[lengthof events] = streamEvent;
+                    }
+                    nxtProc(events);
+                }
             }
-            nextProcessorPointer(events);
+            () => {
+                //do nothing
+            }
         }
     }
 
@@ -898,7 +949,7 @@ public type TimeLengthWindow object {
 
 };
 
-public function timeLengthWindow(function(StreamEvent[]) nextProcessPointer, int timeLength, int length)
+public function timeLengthWindow(int timeLength, int length, function(StreamEvent[])? nextProcessPointer = ())
                     returns TimeLengthWindow {
     TimeLengthWindow timeLengthWindow1 = new(nextProcessPointer, timeLength, length);
     return timeLengthWindow1;
@@ -911,7 +962,7 @@ public type UniqueLengthWindow object {
     public int count = 0;
     private map uniqueMap;
     public LinkedList expiredEventChunk;
-    public function (StreamEvent[]) nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessorPointer;
 
     public new (nextProcessorPointer, uniqueKey, length) {
         expiredEventChunk = new;
@@ -936,7 +987,7 @@ public type UniqueLengthWindow object {
                 clonedEvent.eventType = EXPIRED;
                 StreamEvent eventClonedForMap = clonedEvent.clone();
 
-                string str  =<string>eventClonedForMap.data[uniqueKey];
+                string str  = <string>eventClonedForMap.data[uniqueKey];
                 StreamEvent? oldEvent;
                 if(uniqueMap[str] != null){
                     oldEvent = check<StreamEvent>uniqueMap[str];
@@ -972,19 +1023,27 @@ public type UniqueLengthWindow object {
                 }
             }
         }
-        if (streamEventChunk.getSize() != 0) {
-            StreamEvent[] events = [];
-            streamEventChunk.resetToFront();
-            while (streamEventChunk.hasNext()) {
-                StreamEvent streamEvent = check <StreamEvent> streamEventChunk.next();
-                events[lengthof events] = streamEvent;
+
+        match nextProcessorPointer {
+            function (StreamEvent[]) nxtProc => {
+                if (streamEventChunk.getSize() != 0) {
+                    StreamEvent[] events = [];
+                    streamEventChunk.resetToFront();
+                    while (streamEventChunk.hasNext()) {
+                        StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
+                        events[lengthof events] = streamEvent;
+                    }
+                    nxtProc(events);
+                }
             }
-            nextProcessorPointer(events);
+            () => {
+                //do nothing
+            }
         }
     }
 };
 
-public function uniqueLengthWindow(function(StreamEvent[]) nextProcessPointer, string uniqueKey, int length)
+public function uniqueLengthWindow(string uniqueKey, int length, function(StreamEvent[])? nextProcessPointer = ())
                     returns UniqueLengthWindow {
     UniqueLengthWindow uniqueLengthWindow1 = new(nextProcessPointer, uniqueKey, length);
     return uniqueLengthWindow1;
