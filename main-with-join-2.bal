@@ -32,11 +32,11 @@ type InputRecordB record {
 };
 
 type OutputRecord record {
-    string id;
-    string category;
-    string symbol;
-    string const;
-    int sum;
+    string? id;
+    string? category;
+    string? symbol;
+    string? const;
+    int? sum;
 };
 
 public int streamLock = 0;

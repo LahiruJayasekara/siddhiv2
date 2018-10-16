@@ -33,9 +33,9 @@ type Twitter record {
 };
 
 type StockWithPrice record {
-    string symbol;
-    string tweet;
-    float price;
+    string? symbol;
+    string? tweet;
+    float? price;
 };
 
 StockWithPrice[] globalEventsArray = [];
@@ -113,7 +113,7 @@ function joinFunc() {
     };
 
     // Join processor
-    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "JOIN", conditionFunc);
+    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "FULLOUTERJOIN", conditionFunc);
 
     // Window processors
     streams:LengthWindow lengthWindowA = streams:lengthWindow(joinProcessor.process, 1);
