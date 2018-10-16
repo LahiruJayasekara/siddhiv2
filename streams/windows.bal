@@ -18,20 +18,15 @@ import ballerina/io;
 import ballerina/time;
 import ballerina/task;
 
-public type Window object {
+public type Window abstract object {
 
-    public function process(StreamEvent[] streamEvents) {
-
-    }
+    public function process(StreamEvent[] streamEvents);
 
     public function getCandidateEvents(
                         StreamEvent originEvent,
                         function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
-                        returns (StreamEvent?, StreamEvent?)[] {
-        (StreamEvent?, StreamEvent?)[] events;
-        return events;
-    }
+                        returns (StreamEvent?, StreamEvent?)[];
 };
 
 public type LengthWindow object {
