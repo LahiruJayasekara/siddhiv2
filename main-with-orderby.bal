@@ -66,7 +66,7 @@ public function main(string... args) {
         inputStream.publish(t);
     }
 
-    runtime:sleep(5000);
+    runtime:sleep(1000);
 
     foreach x in globalEmployeeArray {
         io:println(x);
@@ -83,6 +83,10 @@ public function main(string... args) {
 //      }
 //
 
+function getValue(int a) returns int {
+    return a;
+}
+
 function foo() {
 
     function (map) outputFunc = function (map m) {
@@ -95,16 +99,19 @@ function foo() {
 
     streams:Sum sumAggregator = new();
     streams:Count countAggregator = new();
-    streams:Aggregator [] aggregatorArr = [];
+    streams:Aggregator[] aggregatorArr = [];
     aggregatorArr[0] = sumAggregator;
     aggregatorArr[1] = countAggregator;
 
-    streams:OrderBy orderByProcess = streams:createOrderBy(outputProcess.process, ["age", "descending", "name",
-        "ascending"]);
+    (function(map) returns any)[] fields = [function(map x) returns any {
+        return getValue(check <int>x["OUTPUT.age"]);
+    }];
+
+    streams:OrderBy orderByProcess = streams:createOrderBy(outputProcess.process, fields, ["descending"]);
 
     streams:Select select = streams:createSelect(orderByProcess.process, aggregatorArr,
         function (streams:StreamEvent e) returns string {
-            return <string>e.data["inputStream.name"];
+            return <string> e.data["inputStream.name"];
         },
         function (streams:StreamEvent e, streams:Aggregator[] aggregatorArr1) returns map {
             streams:Sum sumAggregator1 = check <streams:Sum>aggregatorArr1[0];
@@ -119,17 +126,17 @@ function foo() {
         }
     );
 
-    //   streams:Window tmpWindow = streams:lengthWindow(select.process, 5);
+    // streams:Window tmpWindow = streams:lengthWindow(select.process, 5);
 
-    //   streams:Window tmpWindow = streams:lengthBatchWindow(select.process, 5);
+    streams:Window tmpWindow = streams:lengthBatchWindow(select.process, 5);
 
     // streams:Window tmpWindow = streams:timeWindow(select.process, 1000);
 
-    streams:Window tmpWindow = streams:timeBatchWindow(select.process, 1000);
+    //streams:Window tmpWindow = streams:timeBatchWindow(select.process, 1000);
 
     streams:Filter filter = streams:createFilter(tmpWindow.process, function (map m) returns boolean {
             // simplify filter
-            return check <int>m["inputStream.age"] > getValue();
+            return check <int>m["inputStream.age"] > 25;
         }
     );
 
@@ -140,10 +147,6 @@ function foo() {
             filter.process(eventArr);
         }
     );
-}
-
-function getValue() returns int  {
-    return 25;
 }
 
 function printTeachers(TeacherOutput e) {
