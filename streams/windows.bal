@@ -28,8 +28,8 @@ public type Window object {
                         StreamEvent originEvent,
                         function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
-                        returns (StreamEvent, StreamEvent)[] {
-        (StreamEvent, StreamEvent)[] events;
+                        returns (StreamEvent?, StreamEvent?)[] {
+        (StreamEvent?, StreamEvent?)[] events;
         return events;
     }
 };
@@ -75,8 +75,8 @@ public type LengthWindow object {
                         StreamEvent originEvent,
                         function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
-                        returns (StreamEvent, StreamEvent)[] {
-        (StreamEvent, StreamEvent)[] events;
+                        returns (StreamEvent?, StreamEvent?)[] {
+        (StreamEvent?, StreamEvent?)[] events;
         int i = 0;
         foreach e in linkedList.asArray() {
             match e {
@@ -190,8 +190,8 @@ public type TimeWindow object {
                         StreamEvent originEvent,
                         function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
-                        returns (StreamEvent, StreamEvent)[] {
-        (StreamEvent, StreamEvent)[] events = [];
+                        returns (StreamEvent?, StreamEvent?)[] {
+        (StreamEvent?, StreamEvent?)[] events = [];
         int i = 0;
         foreach e in expiredEventQueue.asArray() {
             match e {
@@ -288,8 +288,8 @@ public type LengthBatchWindow object {
                         StreamEvent originEvent,
                         function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
-                        returns (StreamEvent, StreamEvent)[] {
-        (StreamEvent, StreamEvent)[] events = [];
+                        returns (StreamEvent?, StreamEvent?)[] {
+        (StreamEvent?, StreamEvent?)[] events = [];
         int i = 0;
         foreach e in currentEventQueue.asArray() {
             match e {
@@ -398,8 +398,8 @@ public type TimeBatchWindow object {
                         StreamEvent originEvent,
                         function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
-                        returns (StreamEvent, StreamEvent)[] {
-        (StreamEvent, StreamEvent)[] events = [];
+                        returns (StreamEvent?, StreamEvent?)[] {
+        (StreamEvent?, StreamEvent?)[] events = [];
         int i = 0;
         foreach e in currentEventQueue.asArray() {
             match e {
