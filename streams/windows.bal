@@ -18,29 +18,24 @@ import ballerina/io;
 import ballerina/time;
 import ballerina/task;
 
-public type Window object {
+public type Window abstract object {
 
-    public function process(StreamEvent[] streamEvents) {
-
-    }
+    public function process(StreamEvent[] streamEvents);
 
     public function getCandidateEvents(
                         StreamEvent originEvent,
                         function (map e1Data, map e2Data) returns boolean conditionFunc,
                         boolean isLHSTrigger = true)
-                        returns (StreamEvent?, StreamEvent?)[] {
-        (StreamEvent?, StreamEvent?)[] events;
-        return events;
-    }
+                        returns (StreamEvent?, StreamEvent?)[];
 };
 
 public type LengthWindow object {
 
     public int size;
     public LinkedList linkedList;
-    public function (StreamEvent[])? nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessPointer;
 
-    public new(nextProcessorPointer, size) {
+    public new(nextProcessPointer, size) {
         linkedList = new;
     }
 
@@ -68,7 +63,7 @@ public type LengthWindow object {
             expiredVeresionOfEvent.eventType = "EXPIRED";
             linkedList.addLast(expiredVeresionOfEvent);
         }
-        match (nextProcessorPointer) {
+        match (nextProcessPointer) {
             function (StreamEvent[]) nxtProc => {
                 nxtProc(outputEvents);
             }
@@ -103,9 +98,9 @@ public type LengthWindow object {
     }
 };
 
-public function lengthWindow(int length, function (StreamEvent[])? nextProcessorPointer = ())
+public function lengthWindow(int length, function (StreamEvent[])? nextProcessPointer = ())
                     returns LengthWindow {
-    LengthWindow lengthWindow1 = new(nextProcessorPointer, length);
+    LengthWindow lengthWindow1 = new(nextProcessPointer, length);
     return lengthWindow1;
 }
 
@@ -114,10 +109,10 @@ public type TimeWindow object {
     public int timeInMillis;
     public LinkedList expiredEventQueue;
     public LinkedList timerQueue;
-    public function (StreamEvent[])? nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessPointer;
     public int lastTimestamp = -0x8000000000000000;
 
-    public new (nextProcessorPointer, timeInMillis) {
+    public new (nextProcessPointer, timeInMillis) {
         expiredEventQueue = new;
         timerQueue = new;
     }
@@ -166,7 +161,7 @@ public type TimeWindow object {
             }
             expiredEventQueue.resetToFront();
         }
-        match (nextProcessorPointer) {
+        match (nextProcessPointer) {
             function (StreamEvent[]) nxtProc => {
                 if (streamEventChunk.getSize() != 0) {
                     StreamEvent[] events = [];
@@ -238,9 +233,9 @@ public type LengthBatchWindow object {
     public StreamEvent? resetEvent;
     public LinkedList currentEventQueue;
     public LinkedList? expiredEventQueue;
-    public function (StreamEvent[])? nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessPointer;
 
-    public new (nextProcessorPointer, length) {
+    public new (nextProcessPointer, length) {
         currentEventQueue = new();
         expiredEventQueue = ();
     }
@@ -286,7 +281,7 @@ public type LengthBatchWindow object {
             }
         }
 
-        match (nextProcessorPointer) {
+        match (nextProcessPointer) {
             function (StreamEvent[]) nxtProc => {
                 streamEventChunks.resetToFront();
                 while streamEventChunks.hasNext() {
@@ -345,9 +340,9 @@ public type TimeBatchWindow object {
     public LinkedList? expiredEventQueue;
     public StreamEvent? resetEvent;
     public task:Timer? timer;
-    public function (StreamEvent[])? nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessPointer;
 
-    public new(nextProcessorPointer, timeInMilliSeconds) {
+    public new(nextProcessPointer, timeInMilliSeconds) {
         currentEventQueue = new();
         expiredEventQueue = ();
     }
@@ -405,7 +400,7 @@ public type TimeBatchWindow object {
             }
             currentEventQueue.clear();
         }
-        match nextProcessorPointer {
+        match nextProcessPointer {
             function (StreamEvent[]) nxtProc => {
                 if (outputStreamEvents.getSize() != 0) {
                     StreamEvent[] events = [];
@@ -462,10 +457,10 @@ public type ExternalTimeWindow object {
 
     public int timeInMillis;
     public LinkedList expiredEventQueue;
-    public function (StreamEvent[])? nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessPointer;
     public string timeStamp;
 
-    public new (nextProcessorPointer, timeInMillis, timeStamp) {
+    public new (nextProcessPointer, timeInMillis, timeStamp) {
         expiredEventQueue = new;
     }
 
@@ -504,7 +499,7 @@ public type ExternalTimeWindow object {
                 expiredEventQueue.resetToFront();
             }
         }
-        match nextProcessorPointer {
+        match nextProcessPointer {
             function (StreamEvent[]) nxtProc => {
                 if (streamEventChunk.getSize() != 0) {
                     StreamEvent[] events = [];
@@ -578,12 +573,12 @@ public type ExternalTimeBatchWindow object {
     public int lastScheduledTime;
     public int lastCurrentEventTime = 0;
     public task:Timer? timer;
-    public function (StreamEvent[])? nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessPointer;
     public string timeStamp;
     public boolean storeExpiredEvents = false;
     public boolean outputExpectsExpiredEvents = false;
 
-    public new (nextProcessorPointer, timeToKeep, timeStamp, startTime, schedulerTimeout,
+    public new (nextProcessPointer, timeToKeep, timeStamp, startTime, schedulerTimeout,
                 replaceTimestampWithBatchEndTime) {
         currentEventChunk = new();
         expiredEventChunk = new;
@@ -671,7 +666,7 @@ public type ExternalTimeBatchWindow object {
             }
         }
 
-        match nextProcessorPointer {
+        match nextProcessPointer {
             function (StreamEvent[]) nxtProc => {
                 if (complexEventChunks.getSize() != 0) {
                     while (complexEventChunks.hasNext()) {
@@ -906,10 +901,10 @@ public type TimeLengthWindow object {
     public int length;
     private int count = 0;
     public LinkedList expiredEventChunk;
-    public function (StreamEvent[])? nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessPointer;
     public task:Timer? timer;
 
-    public new (nextProcessorPointer, timeInMilliSeconds, length) {
+    public new (nextProcessPointer, timeInMilliSeconds, length) {
         expiredEventChunk = new;
     }
 
@@ -965,7 +960,7 @@ public type TimeLengthWindow object {
             }
         }
 
-        match nextProcessorPointer {
+        match nextProcessPointer {
             function (StreamEvent[]) nxtProc => {
                 if (streamEventChunk.getSize() != 0) {
                     StreamEvent[] events = [];
@@ -1035,9 +1030,9 @@ public type UniqueLengthWindow object {
     public int count = 0;
     private map uniqueMap;
     public LinkedList expiredEventChunk;
-    public function (StreamEvent[])? nextProcessorPointer;
+    public function (StreamEvent[])? nextProcessPointer;
 
-    public new (nextProcessorPointer, uniqueKey, length) {
+    public new (nextProcessPointer, uniqueKey, length) {
         expiredEventChunk = new;
     }
 
@@ -1097,7 +1092,7 @@ public type UniqueLengthWindow object {
             }
         }
 
-        match nextProcessorPointer {
+        match nextProcessPointer {
             function (StreamEvent[]) nxtProc => {
                 if (streamEventChunk.getSize() != 0) {
                     StreamEvent[] events = [];
