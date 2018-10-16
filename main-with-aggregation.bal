@@ -38,7 +38,7 @@ stream<TeacherOutput> outputStream;
 
 TeacherOutput[] globalEmployeeArray = [];
 
-public function main() {
+public function main(string... args) {
 
     Teacher[] teachers = [];
     Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
@@ -77,10 +77,12 @@ public function main() {
 
 function foo() {
 
-    function (map) outputFunc = function (map m) {
-        // just cast input map into the output type
-        TeacherOutput t = check <TeacherOutput>m;
-        outputStream.publish(t);
+    function (map[]) outputFunc = function (map[] events) {
+        foreach m in events {
+            // just cast input map into the output type
+            TeacherOutput t = check <TeacherOutput>m;
+            outputStream.publish(t);
+        }
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);

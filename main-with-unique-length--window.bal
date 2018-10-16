@@ -43,33 +43,34 @@ TeacherOutput[] globalEmployeeArray = [];
 public function main(string... args) {
 
     Teacher[] teachers = [];
-    Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1400 };
-    Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 1800 };
-    Teacher t3 = { name: "Naveen", age: 35, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 2100 };
-    Teacher t4 = { name: "Amal", age: 50, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 5000 };
-    //Teacher t5 = { name: "Nimal", age: 50, status: "single", batch: "LK2014", school: "Hindu College", timeStamp: 4000 };
+    Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College"};
+    Teacher t2 = { name: "Raja", age: 30, status: "single", batch: "LK2014", school: "Hindu College"};
+    Teacher t3 = { name: "Naveen", age: 35, status: "single", batch: "LK2014", school: "Hindu College"};
+    Teacher t4 = { name: "Amal", age: 50, status: "single", batch: "LK2014", school: "Hindu College"};
+    Teacher t5 = { name: "Nimal", age: 50, status: "single", batch: "LK2014", school: "Hindu College" };
+    Teacher t6 = { name: "Kamal", age: 60, status: "single", batch: "LK2014", school: "Hindu College" };
 
     teachers[0] = t1;
     teachers[1] = t2;
     teachers[2] = t3;
     teachers[3] = t4;
-    //teachers[4] = t5;
+    teachers[4] = t5;
+    teachers[5] = t6;
     foo();
 
     outputStream.subscribe(printTeachers);
     foreach t in teachers {
         inputStream.publish(t);
-        runtime:sleep(500);
     }
 
-    runtime:sleep(2000);
+    runtime:sleep(1000);
 
     io:println("output: ", globalEmployeeArray);
 }
 
 
 //  ------------- Query to be implemented -------------------------------------------------------
-//  from teacherStream window externalTimeBatch(Teacher.timeStamp, 1000, 1000, 200)
+//  from teacherStream window uniqueLength("teacherStream.age", 3)
 //        select name, age, sum(age) as sumAge
 //        => (TeacherOutput[] t) {
 //            outPutStream.publish(t);
@@ -78,16 +79,12 @@ public function main(string... args) {
 
 function foo() {
 
-    function (map[]) outputFunc = function (map[] events) {
-        foreach m in events {
-            // just cast input map into the output type
-            TeacherOutput t = check <TeacherOutput>m;
-            outputStream.publish(t);
-        }
+    function (map) outputFunc = function(map m) {
+        TeacherOutput t = check <TeacherOutput>m;
+        outputStream.publish(t);
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
-
 
     streams:Sum iSumAggregator = new();
 
@@ -98,7 +95,6 @@ function foo() {
         (),
         function(streams:StreamEvent e, streams:Aggregator[] aggregatorArray) returns map {
             streams:Sum iSumAggregator1 = check <streams:Sum>aggregatorArray[0];
-            // got rid of type casting
             return {
                 "name": e.data["inputStream.name"],
                 "age": e.data["inputStream.age"],
@@ -106,8 +102,7 @@ function foo() {
             };
         });
 
-    streams:ExternalTimeBatchWindow tmpWindow = streams:externalTimeBatchWindow(select.process,
-        "inputStream.timeStamp", 1000, startTime = 1000, timeOut = 1200);
+    streams:UniqueLengthWindow tmpWindow = streams:uniqueLengthWindow(select.process, "inputStream.age", 3);
 
     inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;

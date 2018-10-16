@@ -36,7 +36,7 @@ stream<OutputRecord> outputStream;
 int index = 0;
 OutputRecord[] outputDataArray = [];
 
-public function main(string ...args) {
+public function main(string... args) {
 
     InputRecord[] records = [];
     records[0] = { id: "ANX_2", category: "ANX", intVal: 4 };
@@ -59,10 +59,12 @@ public function main(string ...args) {
 
 function streamFunc() {
 
-    function (map) outputFunc = function (map m) {
-        // just cast input map into the output type
-        OutputRecord o = check <OutputRecord>m;
-        outputStream.publish(o);
+    function (map[]) outputFunc = function (map[] events) {
+        foreach m in events {
+            // just cast input map into the output type
+            OutputRecord o = check <OutputRecord>m;
+            outputStream.publish(o);
+        }
     };
 
     // register output function

@@ -48,7 +48,7 @@ stream<OutputRecord> outputStream;
 int index = 0;
 OutputRecord[] outputDataArray = [];
 
-public function main() {
+public function main(string... args) {
     InputRecordA[] recordsA = [];
     recordsA[0] = { id: "ANX_2", category: "ANX" };
     recordsA[1] = { id: "ANX_1", category: "ANX" };
@@ -87,10 +87,12 @@ public function main() {
 //
 function joinFunc() {
 
-    function (map) outputFunc = function (map m) {
-        // just cast input map into the output type
-        OutputRecord o = check <OutputRecord>m;
-        outputStream.publish(o);
+    function (map[]) outputFunc = function (map[] events) {
+        foreach m in events {
+            // just cast input map into the output type
+            OutputRecord o = check <OutputRecord>m;
+            outputStream.publish(o);
+        }
     };
 
     // Output processor
@@ -126,7 +128,7 @@ function joinFunc() {
     };
 
     // Join processor
-    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "INNER", conditionFunc);
+    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "JOIN", conditionFunc);
 
     // Window processors
     streams:LengthWindow lengthWindowA = streams:lengthWindow(joinProcessor.process, 1);

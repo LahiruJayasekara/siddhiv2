@@ -45,7 +45,7 @@ stream<Stock> stockStream;
 stream<Twitter> twitterStream;
 stream<StockWithPrice> stockWithPriceStream;
 
-public function main() {
+public function main(string... args) {
     joinFunc();
 
     Stock s1 = { symbol: "WSO2", price: 55.6, volume: 100 };
@@ -68,12 +68,28 @@ public function main() {
     io:println(globalEventsArray);
 }
 
+
+//  forever {
+//      from stockStream window lengthWindow(1)
+//      join twitterStream window lengthWindow(1)
+//      on stockStream.symbol == twitterStream.company
+//          select stockStream.symbol as symbol, twitterStream.tweet as tweet, stockStream.price as price
+//          => (StockWithPrice[] emp) {
+//                  foreach e in emp {
+//                      stockWithPriceStream.publish(e);
+//          }
+//      }
+//  }
+//
+
 function joinFunc() {
 
-    function (map) outputFunc = function (map m) {
-        // just cast input map into the output type
-        StockWithPrice o = check <StockWithPrice>m;
-        stockWithPriceStream.publish(o);
+    function (map[]) outputFunc = function (map[] events) {
+        foreach m in events {
+            // just cast input map into the output type
+            StockWithPrice o = check <StockWithPrice>m;
+            stockWithPriceStream.publish(o);
+        }
     };
 
     // Output processor
@@ -97,7 +113,7 @@ function joinFunc() {
     };
 
     // Join processor
-    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "INNER", conditionFunc);
+    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "JOIN", conditionFunc);
 
     // Window processors
     streams:LengthWindow lengthWindowA = streams:lengthWindow(joinProcessor.process, 1);

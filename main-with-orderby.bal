@@ -89,10 +89,12 @@ function getValue(int a) returns int {
 
 function foo() {
 
-    function (map) outputFunc = function (map m) {
-        // just cast input map into the output type
-        TeacherOutput t = check <TeacherOutput>m;
-        outputStream.publish(t);
+    function (map[]) outputFunc = function (map[] events) {
+        foreach m in events {
+            // just cast input map into the output type
+            TeacherOutput t = check <TeacherOutput>m;
+            outputStream.publish(t);
+        }
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
