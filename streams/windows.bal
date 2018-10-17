@@ -899,7 +899,7 @@ public type TimeLengthWindow object {
 
     public int timeInMilliSeconds;
     public int length;
-    private int count = 0;
+    public int count = 0;
     public LinkedList expiredEventChunk;
     public function (StreamEvent[])? nextProcessPointer;
     public task:Timer? timer;
@@ -1028,7 +1028,7 @@ public type UniqueLengthWindow object {
     public string uniqueKey;
     public int length;
     public int count = 0;
-    private map uniqueMap;
+    public map uniqueMap;
     public LinkedList expiredEventChunk;
     public function (StreamEvent[])? nextProcessPointer;
 
