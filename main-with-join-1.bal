@@ -113,11 +113,12 @@ function joinFunc() {
     };
 
     // Join processor
-    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "FULLOUTERJOIN", conditionFunc);
+    streams:StreamJoinProcessor joinProcessor = streams:createStreamJoinProcessor(select.process, "FULLOUTERJOIN",
+        conditionFunc);
 
     // Window processors
-    streams:LengthWindow lengthWindowA = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
-    streams:LengthWindow lengthWindowB = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
+    streams:Window lengthWindowA = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
+    streams:Window lengthWindowB = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
 
     // Set the window processors to the join processor
     joinProcessor.setLHS("stockStream", lengthWindowA);

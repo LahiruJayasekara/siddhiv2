@@ -1,6 +1,22 @@
+// Copyright (c) 2018 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import ballerina/io;
 
-public type JoinProcessor object {
+public type StreamJoinProcessor object {
     private function (map e1Data, map e2Data) returns boolean onConditionFunc;
     private function (any) nextProcessor;
     public Window? lhsWindow;
@@ -60,7 +76,7 @@ public type JoinProcessor object {
                     }
                     foreach evtTuple in candidateEvents {
                         joinedEvents[i] = joinEvents(evtTuple[0], evtTuple[1]);
-                        i++;
+                        i += 1;
                     }
                 } else {
                     match lhsWindow.getCandidateEvents(event, onConditionFunc, isLHSTrigger = false) {
@@ -80,7 +96,7 @@ public type JoinProcessor object {
                     }
                     foreach evtTuple in candidateEvents {
                         joinedEvents[i] = joinEvents(evtTuple[0], evtTuple[1], lhsTriggered = false);
-                        i++;
+                        i += 1;
                     }
                 }
             }
@@ -92,7 +108,7 @@ public type JoinProcessor object {
             match e {
                 StreamEvent s => {
                     outputEvents[i] = s;
-                    i++;
+                    i += 1;
                 }
                 () => {
                 }
@@ -215,9 +231,9 @@ public type JoinProcessor object {
     }
 };
 
-public function createJoinProcessor(function (any) nextProcessor, JoinType joinType,
-                                    function (map e1Data, map e2Data) returns boolean conditionFunc)
-                    returns JoinProcessor {
-    JoinProcessor joinProcesor = new(nextProcessor, joinType, conditionFunc);
+public function createStreamJoinProcessor(function (any) nextProcessor, JoinType joinType,
+                                          function (map e1Data, map e2Data) returns boolean conditionFunc)
+                    returns StreamJoinProcessor {
+    StreamJoinProcessor joinProcesor = new(nextProcessor, joinType, conditionFunc);
     return joinProcesor;
 }

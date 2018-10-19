@@ -128,11 +128,12 @@ function joinFunc() {
     };
 
     // Join processor
-    streams:JoinProcessor joinProcessor = streams:createJoinProcessor(select.process, "JOIN", conditionFunc);
+    streams:StreamJoinProcessor joinProcessor = streams:createStreamJoinProcessor(select.process, "JOIN",
+        conditionFunc);
 
     // Window processors
-    streams:LengthWindow lengthWindowA = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
-    streams:LengthWindow lengthWindowB = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
+    streams:Window lengthWindowA = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
+    streams:Window lengthWindowB = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
 
     // Set the window processors to the join processor
     joinProcessor.setLHS("inputStreamA", lengthWindowA);
@@ -153,7 +154,7 @@ function joinFunc() {
     // Subscribe to input streams
     inputStreamA.subscribe(function (InputRecordA i) {
             lock {
-                streamLock++;
+                streamLock += 1;
                 io:println(i);
                 // make it type unaware and proceed
                 map keyVal = <map>i;
@@ -164,7 +165,7 @@ function joinFunc() {
     );
     inputStreamB.subscribe(function (InputRecordB i) {
             lock {
-                streamLock++;
+                streamLock += 1;
                 io:println(i);
                 // make it type unaware and proceed
                 map keyVal = <map>i;
@@ -186,5 +187,5 @@ function printInputRecords(OutputRecord e) {
 
 function addToOutputDataArray(OutputRecord e) {
     outputDataArray[index] = e;
-    index = index + 1;
+    index += 1;
 }

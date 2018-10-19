@@ -106,7 +106,7 @@ function foo() {
             };
         });
 
-    streams:ExternalTimeBatchWindow tmpWindow = streams:externalTimeBatchWindow("inputStream.timeStamp", 1000,
+    streams:Window tmpWindow = streams:externalTimeBatchWindow("inputStream.timeStamp", 1000,
         startTime = 1000, timeOut = 1200, nextProcessPointer = select.process);
 
     inputStream.subscribe(function(Teacher t) {

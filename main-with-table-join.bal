@@ -115,7 +115,7 @@ function tableJoinFunc() {
         });
 
     // Window processor
-    streams:LengthWindow lengthWindow = streams:lengthWindow(1, nextProcessPointer = tableJoinProcessor.process);
+    streams:Window lengthWindow = streams:lengthWindow(1, nextProcessPointer = tableJoinProcessor.process);
 
     // Set the tableName, streamName, windowProcessors to the table join processor
     tableJoinProcessor.setJoinProperties("tb", "twitterStream", lengthWindow);

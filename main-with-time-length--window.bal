@@ -112,7 +112,7 @@ function foo() {
             };
         });
 
-    streams:TimeLengthWindow tmpWindow = streams:timeLengthWindow(1000, 3, nextProcessPointer = select.process);
+    streams:Window tmpWindow = streams:timeLengthWindow(1000, 3, nextProcessPointer = select.process);
 
     inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;
