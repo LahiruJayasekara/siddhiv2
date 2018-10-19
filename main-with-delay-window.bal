@@ -25,13 +25,11 @@ type Teacher record {
     string status;
     string batch;
     string school;
-    int timeStamp;
 };
 
 type TeacherOutput record {
     string name;
     int age;
-    //int sumAge;
 };
 
 int index = 0;
@@ -64,10 +62,8 @@ public function main(string... args) {
     }
 
     runtime:sleep(2000);
-
     io:println("output: ", globalEmployeeArray);
 }
-
 
 //  ------------- Query to be implemented -------------------------------------------------------
 //  from teacherStream window delayWindow(1000)
@@ -87,22 +83,6 @@ function foo() {
     };
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
-
-    //streams:Sum iSumAggregator = new();
-    //
-    //streams:Aggregator[] aggregators = [];
-    //aggregators[0] = iSumAggregator;
-    //
-    //streams:Select select = streams:createSelect(outputProcess.process, aggregators,
-    //    (),
-    //    function(streams:StreamEvent e, streams:Aggregator[] aggregatorArray) returns map {
-    //        streams:Sum iSumAggregator1 = check <streams:Sum>aggregatorArray[0];
-    //        return {
-    //            "name": e.data["inputStream.name"],
-    //            "age": e.data["inputStream.age"],
-    //            "sumAge": iSumAggregator.process(e.data["inputStream.age"], e.eventType)
-    //        };
-    //    });
 
     streams:SimpleSelect select = streams:createSimpleSelect(outputProcess.process,
         function (streams:StreamEvent e) returns map {
