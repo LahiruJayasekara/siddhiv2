@@ -106,7 +106,13 @@ function tableJoinFunc() {
 
     // Join processor
     streams:TableJoinProcessor tableJoinProcessor = streams:createTableJoinProcessor(select.process, "JOIN",
-        tableQueryWrapper);
+        function (streams:StreamEvent s) returns map[] {
+            map[] result;
+            foreach i, r in queryStocksTable(<string> s.data["twitterStream.company"], 1) {
+                result[i] = <map>r;
+            }
+            return result;
+        });
 
     // Window processor
     streams:LengthWindow lengthWindow = streams:lengthWindow(1, nextProcessPointer = tableJoinProcessor.process);
@@ -122,15 +128,6 @@ function tableJoinFunc() {
     );
 }
 
-// This is the desugard wrapper for the user given filter function
-public function tableQueryWrapper(streams:StreamEvent s) returns map[] {
-    map[] result;
-    foreach i, r in queryStocksTable(<string> s.data["twitterStream.company"], 1) {
-        result[i] = <map>r;
-    }
-    return result;
-}
-
 public function queryStocksTable(string symbol, int volume) returns table<Stock> {
     table<Stock> result = table {
         { symbol, price, volume }, []
@@ -138,10 +135,6 @@ public function queryStocksTable(string symbol, int volume) returns table<Stock>
     foreach stock in stocksTable {
         if (stock.symbol == symbol && stock.volume > volume) {
             var ret = result.add(stock);
-            match ret {
-                () => io:println("Adding record to table successful");
-                error e => io:println("Adding to table failed: " + e.message);
-            }
         }
     }
     return result;
