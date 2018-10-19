@@ -1140,3 +1140,123 @@ public function uniqueLengthWindow(string uniqueKey, int length, function(Stream
     UniqueLengthWindow uniqueLengthWindow1 = new(nextProcessPointer, uniqueKey, length);
     return uniqueLengthWindow1;
 }
+
+public type DelayWindow object {
+
+    public int delayInMilliSeconds;
+    public LinkedList delayedEventQueue;
+    public int lastTimestamp = 0;
+    public task:Timer? timer;
+    public function (StreamEvent[])? nextProcessPointer;
+
+    public new (nextProcessPointer, delayInMilliSeconds) {
+        delayedEventQueue = new;
+    }
+
+    public function process(StreamEvent[] streamEvents) {
+        LinkedList streamEventChunk = new;
+        foreach event in streamEvents {
+            streamEventChunk.addLast(event);
+        }
+
+        if (streamEventChunk.getFirst() == null) {
+            return;
+        }
+
+        lock {
+            streamEventChunk.resetToFront();
+            while (streamEventChunk.hasNext()) {
+                StreamEvent streamEvent = check<StreamEvent>streamEventChunk.next();
+                int currentTime = time:currentTime().time;
+
+                delayedEventQueue.resetToFront();
+                while (delayedEventQueue.hasNext()) {
+                    StreamEvent delayedEvent = check<StreamEvent>delayedEventQueue.next();
+                    //check if the event has delayed expected time period
+                    if (streamEvent.timestamp >= delayedEvent.timestamp + delayInMilliSeconds) {
+                        delayedEventQueue.removeCurrent();
+                        //insert delayed event before the current event to stream chunk
+                        streamEventChunk.insertBeforeCurrent(delayedEvent);
+                    } else {
+                        break;
+                    }
+                }
+
+                if (streamEvent.eventType == CURRENT) {
+                    delayedEventQueue.addLast(streamEvent);
+
+                    if (lastTimestamp < streamEvent.timestamp) {
+                        //calculate the remaining time to delay the current event
+                        int delay = delayInMilliSeconds - (currentTime - streamEvent.timestamp);
+                        timer = new task:Timer(self.invokeProcess, self.handleError, delay);
+                        _ = timer.start();
+                        lastTimestamp = streamEvent.timestamp;
+                    }
+                }
+                //current events are not processed, so remove the current event from the stream chunk
+                streamEventChunk.removeCurrent();
+            }
+            delayedEventQueue.resetToFront();
+        }
+
+        match nextProcessPointer {
+            function (StreamEvent[]) nxtProc => {
+                if (streamEventChunk.getSize() != 0) {
+                    StreamEvent[] events = [];
+                    streamEventChunk.resetToFront();
+                    while (streamEventChunk.hasNext()) {
+                        StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
+                        events[lengthof events] = streamEvent;
+                    }
+                    nxtProc(events);
+                }
+            }
+            () => {
+                //do nothing
+            }
+        }
+    }
+
+    public function invokeProcess() returns error? {
+        StreamEvent timerEvent = new (("timer", {}), "TIMER", time:currentTime().time);
+        StreamEvent[] timerEventWrapper = [];
+        timerEventWrapper[0] = timerEvent;
+        process(timerEventWrapper);
+        _ = timer.stop();
+        return ();
+    }
+
+    public function handleError(error e) {
+        io:println("Error occured", e);
+    }
+
+    public function getCandidateEvents(
+                        StreamEvent originEvent,
+                        function (map e1Data, map e2Data) returns boolean conditionFunc,
+                        boolean isLHSTrigger = true)
+                        returns (StreamEvent?, StreamEvent?)[] {
+        (StreamEvent?, StreamEvent?)[] events;
+        int i = 0;
+        foreach e in delayedEventQueue.asArray() {
+            match e {
+                StreamEvent s => {
+                    StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
+                    StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
+                    if (conditionFunc(lshEvent.data, rhsEvent.data)) {
+                        events[i] = (lshEvent, rhsEvent);
+                        i++;
+                    }
+                }
+                any a => {
+                }
+            }
+        }
+        return events;
+    }
+};
+
+public function delayWindow(int delayInMilliSeconds, function(StreamEvent[])? nextProcessPointer = ())
+                    returns DelayWindow {
+    DelayWindow delayWindow1 = new(nextProcessPointer, delayInMilliSeconds);
+    return delayWindow1;
+}
