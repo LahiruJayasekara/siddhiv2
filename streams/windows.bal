@@ -1243,7 +1243,7 @@ public type DelayWindow object {
                     StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
                     if (conditionFunc(lshEvent.data, rhsEvent.data)) {
                         events[i] = (lshEvent, rhsEvent);
-                        i++;
+                        i += 1;
                     }
                 }
                 any a => {
@@ -1255,7 +1255,7 @@ public type DelayWindow object {
 };
 
 public function delayWindow(int delayInMilliSeconds, function(StreamEvent[])? nextProcessPointer = ())
-                    returns DelayWindow {
+                    returns Window {
     DelayWindow delayWindow1 = new(nextProcessPointer, delayInMilliSeconds);
     return delayWindow1;
 }
