@@ -62,7 +62,7 @@ public type TableJoinProcessor object {
         nextProcessor(outputEvents);
     }
 
-    public function setStreams(string tn, string sn, Window wi) {
+    public function setJoinProperties(string tn, string sn, Window wi) {
         self.tableName = tn;
         self.streamName = sn;
         self.windowInstance = wi;

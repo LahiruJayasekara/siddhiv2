@@ -118,7 +118,7 @@ function tableJoinFunc() {
     streams:LengthWindow lengthWindow = streams:lengthWindow(1, nextProcessPointer = tableJoinProcessor.process);
 
     // Set the tableName, streamName, windowProcessors to the table join processor
-    tableJoinProcessor.setStreams("tb", "twitterStream", lengthWindow);
+    tableJoinProcessor.setJoinProperties("tb", "twitterStream", lengthWindow);
 
     twitterStream.subscribe(function (Twitter i) {
             map keyVal = <map>i;
