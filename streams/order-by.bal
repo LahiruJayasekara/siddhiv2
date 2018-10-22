@@ -1,12 +1,29 @@
+// Copyright (c) 2018 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+import ballerina/io;
+
 public type OrderBy object {
 
     public function (StreamEvent[]) nextProcessorPointer;
 
-    public (function(map) returns any)[] fields;
+    public (function(map) returns any)[] fieldFuncs;
     // contains the field name to be sorted and the sort type (ascending/descending)
     public string[] sortTypes;
 
-    public new(nextProcessorPointer, fields, sortTypes) {
+    public new(nextProcessorPointer, fieldFuncs, sortTypes) {
 
     }
 
@@ -21,7 +38,7 @@ public type OrderBy object {
         StreamEvent[] b;
         while (index < n) {
             b[index] = a[index];
-            index++;
+            index += 1;
         }
         topDownSplitMerge(b, 0, n, a, sortFunc, tmpSortTypes);
     }
@@ -54,7 +71,7 @@ public type OrderBy object {
                 b[k] = a[j];
                 j = j + 1;
             }
-            k++;
+            k += 1;
         }
     }
 
@@ -99,16 +116,16 @@ public type OrderBy object {
             if (c1 != c2) {
                 return c1 - c2;
             }
-            k++;
+            k += 1;
         }
         return len1 - len2;
     }
 
     function sortFunc(StreamEvent x, StreamEvent y, string[] sortFieldMetadata, int fieldIndex) returns int {
-        var field = fields[fieldIndex];
-        match field(x.data) { //even indices contain the field name
+        var fieldFunc = fieldFuncs[fieldIndex];
+        match fieldFunc(x.data) {
             string sx => {
-                match field(y.data) {
+                match fieldFunc(y.data) {
                     string sy => {
                         int c;
                         //odd indices contain the sort type (ascending/descending)
@@ -121,7 +138,7 @@ public type OrderBy object {
                         return callNextSortFunc(x, y, c, sortFieldMetadata, fieldIndex + 1);
                     }
                     any a => {
-                        error err = { message: "Values to be orderred contain non-string values in field: " +
+                        error err = { message: "Values to be orderred contain non-string values in fieldIndex: " +
                             fieldIndex + ", sortType: " + sortFieldMetadata[fieldIndex]};
                         throw err;
                     }
@@ -129,7 +146,7 @@ public type OrderBy object {
             }
 
             int|float ax => {
-                match field(y.data) {
+                match fieldFunc(y.data) {
                     int|float ay => {
                         int c;
                         if (sortFieldMetadata[fieldIndex].equalsIgnoreCase(ASCENDING)) {
@@ -148,8 +165,8 @@ public type OrderBy object {
 
             }
             any a => {
-                error err = { message: "Values of types other than strings and numbers cannot be sorted in field: " +
-                    fieldIndex + ", sortType: " + sortFieldMetadata[fieldIndex]};
+                error err = { message: "Values of types other than strings and numbers cannot be sorted in fieldIndex:
+                 " + fieldIndex + ", sortType: " + sortFieldMetadata[fieldIndex]};
                 throw err;
             }
         }
