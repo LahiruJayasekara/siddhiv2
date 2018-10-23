@@ -90,11 +90,9 @@ public type LengthWindow object {
                             if (conditionCheckFunc(lshEvent.data, rhsEvent.data)) {
                                 events[i] = (lshEvent, rhsEvent);
                                 i += 1;
-                                io:println("not null");
                             }
                         }
                         () => {
-                            io:println("In null");
                             events[i] = (lshEvent, rhsEvent);
                             i += 1;
                         }
