@@ -128,8 +128,7 @@ function joinFunc() {
     };
 
     // Join processor
-    streams:StreamJoinProcessor joinProcessor = streams:createStreamJoinProcessor(select.process, "JOIN",
-        conditionFunc);
+    streams:StreamJoinProcessor joinProcessor = streams:createStreamJoinProcessor(select.process, "JOIN", conditionFunc=conditionFunc);
 
     // Window processors
     streams:Window lengthWindowA = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
