@@ -33,10 +33,28 @@ public type LengthWindow object {
 
     public int size;
     public LinkedList linkedList;
+    public any[] windowParameters;
     public function (StreamEvent[])? nextProcessPointer;
 
-    public new(nextProcessPointer, size) {
+    public new(nextProcessPointer, windowParameters) {
         linkedList = new;
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters){
+        if(lengthof parameters == 1){
+            match <int>parameters[0] {
+                int value => size = value;
+                any anyValue => {
+                    error err = { message: "Length window expects an int parameter" };
+                    throw err;
+                }
+            }
+        }else{
+            error err = { message: "Length window should only have one parameter (<int> " +
+                "windowLength), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
     }
 
     public function process(StreamEvent[] streamEvents) {
@@ -106,9 +124,9 @@ public type LengthWindow object {
     }
 };
 
-public function lengthWindow(int length, function (StreamEvent[])? nextProcessPointer = ())
+public function lengthWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
-    LengthWindow lengthWindow1 = new(nextProcessPointer, length);
+    LengthWindow lengthWindow1 = new(nextProcessPointer, windowParameters);
     return lengthWindow1;
 }
 
