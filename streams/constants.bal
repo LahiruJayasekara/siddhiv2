@@ -10,3 +10,7 @@ public EventType CURRENT = "CURRENT";
 public EventType TIMER = "TIMER";
 public string DELIMITER = ".";
 public string DELIMITER_REGEX = "\\.";
+public JoinType INNER_JOIN = "JOIN";
+public JoinType LEFT_OUTER_JOIN = "LEFTOUTERJOIN";
+public JoinType RIGHT_OUTER_JOIN = "RIGHTOUTERJOIN";
+public JoinType FULL_OUTER_JOIN = "FULLOUTERJOIN";

@@ -56,9 +56,9 @@ public function main(string... args) {
 
     stockWithPriceStream.subscribe(printCompanyStockPrice);
 
-    twitterStream.publish(t1);
-    runtime:sleep(1000);
     stockStream.publish(s1);
+    runtime:sleep(1000);
+    twitterStream.publish(t1);
     runtime:sleep(1000);
     stockStream.publish(s2);
     runtime:sleep(1000);
@@ -113,8 +113,8 @@ function joinFunc() {
     };
 
     // Join processor
-    streams:StreamJoinProcessor joinProcessor = streams:createStreamJoinProcessor(select.process, "FULLOUTERJOIN",
-        conditionFunc);
+    streams:StreamJoinProcessor joinProcessor = streams:createStreamJoinProcessor(select.process, "RIGHTOUTERJOIN",
+        conditionFunc=conditionFunc);
 
     // Window processors
     streams:Window lengthWindowA = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
