@@ -93,7 +93,7 @@ function foo() {
         }
     );
 
-    streams:Window tmpWindow = streams:delayWindow(1000, nextProcessPointer = select.process);
+    streams:Window tmpWindow = streams:delayWindow([1000], nextProcessPointer = select.process);
 
     inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;

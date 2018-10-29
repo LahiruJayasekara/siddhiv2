@@ -104,7 +104,7 @@ function foo() {
             };
         });
 
-    streams:Window tmpWindow = streams:uniqueLengthWindow("inputStream.age", 3,
+    streams:Window tmpWindow = streams:uniqueLengthWindow(["inputStream.age", 3],
         nextProcessPointer = select.process);
 
     inputStream.subscribe(function(Teacher t) {

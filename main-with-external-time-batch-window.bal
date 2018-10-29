@@ -106,8 +106,8 @@ function foo() {
             };
         });
 
-    streams:Window tmpWindow = streams:externalTimeBatchWindow("inputStream.timeStamp", 1000,
-        startTime = 1000, timeOut = 1200, nextProcessPointer = select.process);
+    streams:Window tmpWindow = streams:externalTimeBatchWindow(["inputStream.timeStamp", 1000, 1000, 1200],
+        nextProcessPointer = select.process);
 
     inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;
