@@ -702,7 +702,7 @@ public type ExternalTimeBatchWindow object {
     public LinkedList currentEventChunk;
     public LinkedList expiredEventChunk;
     public StreamEvent? resetEvent = null;
-    public int startTime = 0;
+    public int startTime = -1;
     public boolean isStartTimeEnabled = false;
     public boolean replaceTimestampWithBatchEndTime = false;
     public boolean flushed = false;
