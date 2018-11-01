@@ -25,13 +25,11 @@ type Teacher record {
     string status;
     string batch;
     string school;
-    int timeStamp;
 };
 
 type TeacherOutput record {
     string name;
     int age;
-    int sumAge;
 };
 
 int index = 0;
@@ -44,9 +42,9 @@ public function main(string... args) {
 
     Teacher[] teachers = [];
     Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College"};
-    Teacher t2 = { name: "Raja", age: 30, status: "single", batch: "LK2014", school: "Hindu College"};
+    Teacher t2 = { name: "Raja", age: 90, status: "single", batch: "LK2014", school: "Hindu College"};
     Teacher t3 = { name: "Naveen", age: 35, status: "single", batch: "LK2014", school: "Hindu College"};
-    Teacher t4 = { name: "Amal", age: 50, status: "single", batch: "LK2014", school: "Hindu College"};
+    Teacher t4 = { name: "Amal", age: 90, status: "single", batch: "LK2014", school: "Hindu College"};
     Teacher t5 = { name: "Nimal", age: 50, status: "single", batch: "LK2014", school: "Hindu College" };
     Teacher t6 = { name: "Kamal", age: 60, status: "single", batch: "LK2014", school: "Hindu College" };
 
@@ -63,15 +61,13 @@ public function main(string... args) {
         inputStream.publish(t);
     }
 
-    runtime:sleep(1000);
-
+    runtime:sleep(2000);
     io:println("output: ", globalEmployeeArray);
 }
 
-
 //  ------------- Query to be implemented -------------------------------------------------------
-//  from teacherStream window uniqueLength("teacherStream.age", 3)
-//        select name, age, sum(age) as sumAge
+//  from teacherStream window sortWindow([3, teacherStream.age, ascending, teacherStream.name, descending])
+//        select name, age
 //        => (TeacherOutput[] t) {
 //            outPutStream.publish(t);
 //        }
@@ -88,23 +84,17 @@ function foo() {
 
     streams:OutputProcess outputProcess = streams:createOutputProcess(outputFunc);
 
-    streams:Sum iSumAggregator = new();
-
-    streams:Aggregator[] aggregators = [];
-    aggregators[0] = iSumAggregator;
-
-    streams:Select select = streams:createSelect(outputProcess.process, aggregators,
-        (),
-        function(streams:StreamEvent e, streams:Aggregator[] aggregatorArray) returns map {
-            streams:Sum iSumAggregator1 = check <streams:Sum>aggregatorArray[0];
+    streams:SimpleSelect select = streams:createSimpleSelect(outputProcess.process,
+        function (streams:StreamEvent e) returns map {
             return {
                 "name": e.data["inputStream.name"],
-                "age": e.data["inputStream.age"],
-                "sumAge": iSumAggregator.process(e.data["inputStream.age"], e.eventType)
+                "age": e.data["inputStream.age"]
             };
-        });
+        }
+    );
 
-    streams:Window tmpWindow = streams:uniqueLengthWindow(["inputStream.age", 3],
+    streams:Window tmpWindow = streams:sortWindow([3, "inputStream.age", "ascending", "inputStream.name",
+        "descending"],
         nextProcessPointer = select.process);
 
     inputStream.subscribe(function(Teacher t) {

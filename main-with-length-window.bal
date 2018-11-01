@@ -70,7 +70,7 @@ public function main(string... args) {
 
 
 //  ------------- Query to be implemented -------------------------------------------------------
-//  from teacherStream window uniqueLength("teacherStream.age", 3)
+//  from teacherStream window length([3])
 //        select name, age, sum(age) as sumAge
 //        => (TeacherOutput[] t) {
 //            outPutStream.publish(t);
@@ -104,8 +104,7 @@ function foo() {
             };
         });
 
-    streams:Window tmpWindow = streams:uniqueLengthWindow(["inputStream.age", 3],
-        nextProcessPointer = select.process);
+    streams:Window tmpWindow = streams:lengthWindow([3], nextProcessPointer = select.process);
 
     inputStream.subscribe(function(Teacher t) {
             map keyVal = <map>t;

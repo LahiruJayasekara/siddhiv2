@@ -117,8 +117,8 @@ function joinFunc() {
         conditionFunc=conditionFunc);
 
     // Window processors
-    streams:Window lengthWindowA = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
-    streams:Window lengthWindowB = streams:lengthWindow(1, nextProcessPointer = joinProcessor.process);
+    streams:Window lengthWindowA = streams:lengthWindow([1], nextProcessPointer = joinProcessor.process);
+    streams:Window lengthWindowB = streams:lengthWindow([1], nextProcessPointer = joinProcessor.process);
 
     // Set the window processors to the join processor
     joinProcessor.setLHS("stockStream", lengthWindowA);

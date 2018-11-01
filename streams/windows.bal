@@ -33,10 +33,28 @@ public type LengthWindow object {
 
     public int size;
     public LinkedList linkedList;
+    public any[] windowParameters;
     public function (StreamEvent[])? nextProcessPointer;
 
-    public new(nextProcessPointer, size) {
+    public new(nextProcessPointer, windowParameters) {
         linkedList = new;
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters == 1) {
+            match parameters[0] {
+                int value => size = value;
+                any anyValue => {
+                    error err = { message: "Length window expects an int parameter" };
+                    throw err;
+                }
+            }
+        } else {
+            error err = { message: "Length window should only have one parameter (<int> " +
+                "windowLength), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
     }
 
     public function process(StreamEvent[] streamEvents) {
@@ -106,23 +124,41 @@ public type LengthWindow object {
     }
 };
 
-public function lengthWindow(int length, function (StreamEvent[])? nextProcessPointer = ())
+public function lengthWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
-    LengthWindow lengthWindow1 = new(nextProcessPointer, length);
+    LengthWindow lengthWindow1 = new(nextProcessPointer, windowParameters);
     return lengthWindow1;
 }
 
 public type TimeWindow object {
 
     public int timeInMillis;
+    public any[] windowParameters;
     public LinkedList expiredEventQueue;
     public LinkedList timerQueue;
     public function (StreamEvent[])? nextProcessPointer;
     public int lastTimestamp = -0x8000000000000000;
 
-    public new(nextProcessPointer, timeInMillis) {
+    public new(nextProcessPointer, windowParameters) {
         expiredEventQueue = new;
         timerQueue = new;
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters == 1) {
+            match parameters[0] {
+                int value => timeInMillis = value;
+                any anyValue => {
+                    error err = { message: "Time window expects an int parameter" };
+                    throw err;
+                }
+            }
+        } else {
+            error err = { message: "Time window should only have one parameter (<int> " +
+                "windowTime), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
     }
 
     public function process(StreamEvent[] streamEvents) {
@@ -236,23 +272,41 @@ public type TimeWindow object {
     }
 };
 
-public function timeWindow(int timeLength, function (StreamEvent[])? nextProcessPointer = ())
+public function timeWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
-    TimeWindow timeWindow1 = new(nextProcessPointer, timeLength);
+    TimeWindow timeWindow1 = new(nextProcessPointer, windowParameters);
     return timeWindow1;
 }
 
 public type LengthBatchWindow object {
     public int length;
+    public any[] windowParameters;
     public int count;
     public StreamEvent? resetEvent;
     public LinkedList currentEventQueue;
     public LinkedList? expiredEventQueue;
     public function (StreamEvent[])? nextProcessPointer;
 
-    public new(nextProcessPointer, length) {
+    public new(nextProcessPointer, windowParameters) {
         currentEventQueue = new();
         expiredEventQueue = ();
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters == 1) {
+            match parameters[0] {
+                int value => length = value;
+                any anyValue => {
+                    error err = { message: "LengthBatch window expects an int parameter" };
+                    throw err;
+                }
+            }
+        } else {
+            error err = { message: "LengthBatch window should only have one parameter (<int> " +
+                "windowBatchLength), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
     }
 
     public function process(StreamEvent[] streamEvents) {
@@ -350,15 +404,16 @@ public type LengthBatchWindow object {
     }
 };
 
-public function lengthBatchWindow(int length, function (StreamEvent[])? nextProcessPointer = ())
+public function lengthBatchWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
-    LengthBatchWindow lengthBatch = new(nextProcessPointer, length);
+    LengthBatchWindow lengthBatch = new(nextProcessPointer, windowParameters);
     return lengthBatch;
 }
 
 
 public type TimeBatchWindow object {
     public int timeInMilliSeconds;
+    public any[] windowParameters;
     public int nextEmitTime = -1;
     public LinkedList currentEventQueue;
     public LinkedList? expiredEventQueue;
@@ -366,9 +421,26 @@ public type TimeBatchWindow object {
     public task:Timer? timer;
     public function (StreamEvent[])? nextProcessPointer;
 
-    public new(nextProcessPointer, timeInMilliSeconds) {
+    public new(nextProcessPointer, windowParameters) {
         currentEventQueue = new();
         expiredEventQueue = ();
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters == 1) {
+            match parameters[0] {
+                int value => timeInMilliSeconds = value;
+                any anyValue => {
+                    error err = { message: "TimeBatch window expects an int parameter" };
+                    throw err;
+                }
+            }
+        } else {
+            error err = { message: "TimeBatch window should only have one parameter (<int> " +
+                "windowBatchTime), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
     }
 
     public function invokeProcess() returns error? {
@@ -479,21 +551,47 @@ public type TimeBatchWindow object {
     }
 };
 
-public function timeBatchWindow(int time, function (StreamEvent[])? nextProcessPointer = ())
+public function timeBatchWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
-    TimeBatchWindow timeBatch = new(nextProcessPointer, time);
+    TimeBatchWindow timeBatch = new(nextProcessPointer, windowParameters);
     return timeBatch;
 }
 
 public type ExternalTimeWindow object {
 
     public int timeInMillis;
+    public any[] windowParameters;
     public LinkedList expiredEventQueue;
     public function (StreamEvent[])? nextProcessPointer;
     public string timeStamp;
 
-    public new(nextProcessPointer, timeInMillis, timeStamp) {
+    public new(nextProcessPointer, windowParameters) {
         expiredEventQueue = new;
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters == 2) {
+            match parameters[0] {
+                string value => timeStamp = value;
+                any anyValue => {
+                    error err = { message: "ExternalTime window's first parameter, timestamp should be of type string" };
+                    throw err;
+                }
+            }
+
+            match parameters[1] {
+                int value => timeInMillis = value;
+                any anyValue => {
+                    error err = { message: "ExternalTime window's second parameter, windowTime should be of type int" };
+                    throw err;
+                }
+            }
+        } else {
+            error err = { message: "ExternalTime window should only have two parameters (<string> timestamp, <int> " +
+                "windowTime), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
     }
 
     public function process(StreamEvent[] streamEvents) {
@@ -592,10 +690,10 @@ public type ExternalTimeWindow object {
     }
 };
 
-public function externalTimeWindow(string timeStamp, int timeLength, function (StreamEvent[])? nextProcessPointer = ())
+public function externalTimeWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
 
-    ExternalTimeWindow timeWindow1 = new(nextProcessPointer, timeLength, timeStamp);
+    ExternalTimeWindow timeWindow1 = new(nextProcessPointer, windowParameters);
     return timeWindow1;
 }
 
@@ -604,7 +702,7 @@ public type ExternalTimeBatchWindow object {
     public LinkedList currentEventChunk;
     public LinkedList expiredEventChunk;
     public StreamEvent? resetEvent = null;
-    public int startTime = 0;
+    public int startTime = -1;
     public boolean isStartTimeEnabled = false;
     public boolean replaceTimestampWithBatchEndTime = false;
     public boolean flushed = false;
@@ -617,13 +715,81 @@ public type ExternalTimeBatchWindow object {
     public string timeStamp;
     public boolean storeExpiredEvents = false;
     public boolean outputExpectsExpiredEvents = false;
+    public any[] windowParameters;
 
-    public new(nextProcessPointer, timeToKeep, timeStamp, startTime, schedulerTimeout,
-               replaceTimestampWithBatchEndTime) {
+    public new(nextProcessPointer, windowParameters) {
         currentEventChunk = new();
         expiredEventChunk = new;
+
+        initParameters(windowParameters);
+
         if (startTime != -1) {
             isStartTimeEnabled = true;
+        }
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters >= 2 && lengthof parameters <= 5) {
+            match parameters[0] {
+                string value => timeStamp = value;
+                any anyValue => {
+                    error err = { message: "ExternalTimeBatch window's first parameter, timestamp should be of type " +
+                    "string" };
+                    throw err;
+                }
+            }
+
+            match parameters[1] {
+                int value => timeToKeep = value;
+                any anyValue => {
+                    error err = { message: "ExternalTimeBatch window's second parameter, windowTime should be of " +
+                    "type int" };
+                    throw err;
+                }
+            }
+
+            if(lengthof parameters >= 3) {
+                match parameters[2] {
+                    int value => startTime = value;
+                    () => startTime = -1;
+                    any anyValue => {
+                        error err = { message: "ExternalTimeBatch window's third parameter, startTime should be of " +
+                            "type int" };
+                        throw err;
+                    }
+                }
+            }
+
+            if(lengthof parameters >= 4) {
+                match parameters[3] {
+                    int value => schedulerTimeout = value;
+                    () => schedulerTimeout = -1;
+                    any anyValue => {
+                        error err = { message: "ExternalTimeBatch window's fourth parameter, timeout should be of " +
+                            "type int" };
+                        throw err;
+                    }
+                }
+            }
+
+            if(lengthof parameters == 5) {
+                match parameters[4] {
+                    boolean value => replaceTimestampWithBatchEndTime = value;
+                    () => replaceTimestampWithBatchEndTime = false;
+                    any anyValue => {
+                        error err = { message: "ExternalTimeBatch window's fifth parameter, " +
+                        "replaceTimestampWithBatchEndTime should be of type boolean" };
+                        throw err;
+                    }
+                }
+            }
+
+        } else {
+            error err = { message: "ExternalTimeBatch window should only have two to five " +
+                "parameters (<string> timestamp, <int> windowTime, <int> startTime, <int> " +
+                "timeout, <boolean> replaceTimestampWithBatchEndTime), but found " + lengthof parameters
+                 + " input attributes" };
+            throw err;
         }
     }
 
@@ -935,12 +1101,9 @@ public type ExternalTimeBatchWindow object {
     }
 };
 
-public function externalTimeBatchWindow(string timestamp, int time, int
-    startTime = -1,                     int timeOut = -1, boolean replaceTimestampWithBatchEndTime = false, function (
-                                        StreamEvent[])?
-                                        nextProcessPointer = ()) returns Window {
-    ExternalTimeBatchWindow timeWindow1 = new(nextProcessPointer, time, timestamp, startTime, timeOut,
-        replaceTimestampWithBatchEndTime);
+public function externalTimeBatchWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
+        returns Window {
+    ExternalTimeBatchWindow timeWindow1 = new(nextProcessPointer, windowParameters);
     return timeWindow1;
 }
 
@@ -948,13 +1111,39 @@ public type TimeLengthWindow object {
 
     public int timeInMilliSeconds;
     public int length;
+    public any[] windowParameters;
     public int count = 0;
     public LinkedList expiredEventChunk;
     public function (StreamEvent[])? nextProcessPointer;
     public task:Timer? timer;
 
-    public new(nextProcessPointer, timeInMilliSeconds, length) {
+    public new(nextProcessPointer, windowParameters) {
         expiredEventChunk = new;
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters == 2) {
+            match parameters[0] {
+                int value => timeInMilliSeconds = value;
+                any anyValue => {
+                    error err = { message: "TimeLength window's first parameter, windowTime should be of type int" };
+                    throw err;
+                }
+            }
+
+            match parameters[1] {
+                int value => length = value;
+                any anyValue => {
+                    error err = { message: "TimeLength window's second parameter, windowLength should be of type int" };
+                    throw err;
+                }
+            }
+        } else {
+            error err = { message: "TimeLength window should only have two parameters (<int> windowTime, <int> " +
+                "windowLength), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
     }
 
     public function process(StreamEvent[] streamEvents) {
@@ -1074,9 +1263,9 @@ public type TimeLengthWindow object {
 
 };
 
-public function timeLengthWindow(int timeLength, int length, function (StreamEvent[])? nextProcessPointer = ())
+public function timeLengthWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
-    TimeLengthWindow timeLengthWindow1 = new(nextProcessPointer, timeLength, length);
+    TimeLengthWindow timeLengthWindow1 = new(nextProcessPointer, windowParameters);
     return timeLengthWindow1;
 }
 
@@ -1084,13 +1273,41 @@ public type UniqueLengthWindow object {
 
     public string uniqueKey;
     public int length;
+    public any[] windowParameters;
     public int count = 0;
     public map uniqueMap;
     public LinkedList expiredEventChunk;
     public function (StreamEvent[])? nextProcessPointer;
 
-    public new(nextProcessPointer, uniqueKey, length) {
+    public new(nextProcessPointer, windowParameters) {
         expiredEventChunk = new;
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters == 2) {
+            match parameters[0] {
+                string value => uniqueKey = value;
+                any anyValue => {
+                    error err = { message: "UniqueLength window's first parameter, uniqueAttribute should be of type " +
+                    "string" };
+                    throw err;
+                }
+            }
+
+            match parameters[1] {
+                int value => length = value;
+                any anyValue => {
+                    error err = { message: "UniqueLength window's second parameter, windowLength should be of type
+                    int" };
+                    throw err;
+                }
+            }
+        } else {
+            error err = { message: "UniqueLength window should only have two parameters (<string> uniqueAttribute, " +
+            "<int> windowLength), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
     }
 
     public function process(StreamEvent[] streamEvents) {
@@ -1200,23 +1417,42 @@ public type UniqueLengthWindow object {
     }
 };
 
-public function uniqueLengthWindow(string uniqueKey, int length, function (StreamEvent[])? nextProcessPointer = ())
+public function uniqueLengthWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
-    UniqueLengthWindow uniqueLengthWindow1 = new(nextProcessPointer, uniqueKey, length);
+    UniqueLengthWindow uniqueLengthWindow1 = new(nextProcessPointer, windowParameters);
     return uniqueLengthWindow1;
 }
 
 public type DelayWindow object {
 
     public int delayInMilliSeconds;
+    public any[] windowParameters;
     public LinkedList delayedEventQueue;
     public int lastTimestamp = 0;
     public task:Timer? timer;
     public function (StreamEvent[])? nextProcessPointer;
 
-    public new(nextProcessPointer, delayInMilliSeconds) {
+    public new(nextProcessPointer, windowParameters) {
         delayedEventQueue = new;
+        initParameters(windowParameters);
     }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters == 1) {
+            match parameters[0] {
+                int value => delayInMilliSeconds = value;
+                any anyValue => {
+                    error err = { message: "Delay window expects an int parameter" };
+                    throw err;
+                }
+            }
+        } else {
+            error err = { message: "Delay window should only have one parameter (<int> " +
+                "delayTime), but found " + lengthof parameters + " input attributes" };
+            throw err;
+        }
+    }
+
 
     public function process(StreamEvent[] streamEvents) {
         LinkedList streamEventChunk = new;
@@ -1328,8 +1564,329 @@ public type DelayWindow object {
     }
 };
 
-public function delayWindow(int delayInMilliSeconds, function (StreamEvent[])? nextProcessPointer = ())
+public function delayWindow(any[] windowParameters, function (StreamEvent[])? nextProcessPointer = ())
                     returns Window {
-    DelayWindow delayWindow1 = new(nextProcessPointer, delayInMilliSeconds);
+    DelayWindow delayWindow1 = new(nextProcessPointer, windowParameters);
     return delayWindow1;
+}
+
+public type SortWindow object {
+
+    public int lengthToKeep;
+    public any [] windowParameters;
+    public LinkedList sortedWindow;
+    public string[] sortMetadata;
+    public string[] fields;
+    public string[] sortTypes;
+    public function (StreamEvent[])? nextProcessPointer;
+
+    public new (nextProcessPointer, windowParameters) {
+        sortedWindow = new;
+        initParameters(windowParameters);
+    }
+
+    public function initParameters(any[] parameters) {
+        if(lengthof parameters >= 3 && lengthof parameters % 2 == 1) {
+            match parameters[0] {
+                int value => lengthToKeep = value;
+                any anyValue => {
+                    error err = { message: "Sort window's first parameter, windowLength should be of type " +
+                        "int" };
+                    throw err;
+                }
+            }
+            
+            foreach i in 1 ... lengthof parameters - 1 {
+                match parameters[i] {
+                    string value => {
+                        if (i % 2 == 1) {
+                            fields[lengthof fields] = value;
+                        } else {
+                            if (value == "ascending" || value == "descending") {
+                                sortTypes[lengthof sortTypes] = value;
+                            } else {
+                                error err = { message: "Expected ascending or descending at "+
+                                "index " + (i + 1) + " of sort window parameter array"};
+                                throw err;
+                            }
+                        }
+                    }
+                    int intValue => {
+                        error err = { message: "Expected string parameter at index " + (i + 1) +
+                            " of sort window parameter array, but found <int>"};
+                        throw err;
+                    }
+                    float floatValue => {
+                        error err = { message: "Expected string parameter at index " + (i + 1) +
+                            " of sort window parameter array, but found <float>"};
+                        throw err;
+                    }
+                    boolean boolValue => {
+                        error err = { message: "Expected string parameter at index " + (i + 1) +
+                            " of sort window parameter array, but found <boolean>"};
+                        throw err;
+                    }
+                    any anyValue => {
+                        error err = { message: "Incompatible parameter type" };
+                        throw err;
+                    }
+                }
+            }
+
+        } else {
+            error err = { message: "Sort window should have two or more " +
+                "parameters (<int> windowLength, <string> attribute1, <string> order1, " +
+                "<string> attribute2, <string> order2, ...), but found " + lengthof parameters
+                + " input attributes" };
+            throw err;
+        }
+    }
+
+    public function process(StreamEvent[] streamEvents) {
+        LinkedList streamEventChunk = new;
+        foreach event in streamEvents {
+            streamEventChunk.addLast(event);
+        }
+
+        if (streamEventChunk.getFirst() == null) {
+            return;
+        }
+
+        lock {
+            int currentTime = time:currentTime().time;
+
+            while (streamEventChunk.hasNext()) {
+                StreamEvent streamEvent = check<StreamEvent>streamEventChunk.next();
+
+                StreamEvent clonedEvent = streamEvent.clone();
+                clonedEvent.eventType = EXPIRED;
+
+                sortedWindow.addLast(clonedEvent);
+                if (sortedWindow.getSize() > lengthToKeep) {
+                    StreamEvent[] events = [];
+                    sortedWindow.resetToFront();
+
+                    while (sortedWindow.hasNext()) {
+                        StreamEvent streamEven = check <StreamEvent>sortedWindow.next();
+                        events[lengthof events] = streamEven;
+                    }
+
+                    topDownMergeSort(events, sortTypes);
+                    sortedWindow.clear();
+                    foreach event in events {
+                        sortedWindow.addLast(event);
+                    }
+
+                    StreamEvent expiredEvent = check<StreamEvent>sortedWindow.removeLast();
+                    expiredEvent.timestamp = currentTime;
+                    streamEventChunk.addLast(expiredEvent);
+                    StreamEvent str = check <StreamEvent>streamEventChunk.next();
+                }
+            }
+        }
+
+        match nextProcessPointer {
+            function (StreamEvent[]) nxtProc => {
+                if (streamEventChunk.getSize() != 0) {
+                    StreamEvent[] events = [];
+                    streamEventChunk.resetToFront();
+                    while (streamEventChunk.hasNext()) {
+                        StreamEvent streamEvent = check <StreamEvent>streamEventChunk.next();
+                        events[lengthof events] = streamEvent;
+                    }
+                    nxtProc(streamEvents);
+                }
+            }
+            () => {
+                //do nothing
+            }
+        }
+    }
+
+    public function topDownMergeSort(StreamEvent[] a, string[] tmpSortTypes) {
+        int index = 0;
+        int n = lengthof a;
+        StreamEvent[] b;
+        while (index < n) {
+            b[index] = a[index];
+            index += 1;
+        }
+        topDownSplitMerge(b, 0, n, a, sortFunc, tmpSortTypes);
+    }
+
+    public function topDownSplitMerge(StreamEvent[] b, int iBegin, int iEnd, StreamEvent[] a,
+                                      function (StreamEvent, StreamEvent, string[], int) returns int sortFunc,
+                                      string[] tmpSortTypes) {
+
+        if (iEnd - iBegin < 2) {
+            return;
+        }
+        int iMiddle = (iEnd + iBegin) / 2;
+        topDownSplitMerge(a, iBegin, iMiddle, b, sortFunc, tmpSortTypes);
+        topDownSplitMerge(a, iMiddle, iEnd, b, sortFunc, tmpSortTypes);
+        topDownMerge(b, iBegin, iMiddle, iEnd, a, sortFunc, tmpSortTypes);
+    }
+
+    public function topDownMerge(StreamEvent[] a, int iBegin, int iMiddle, int iEnd, StreamEvent[] b,
+                                 function (StreamEvent, StreamEvent, string[], int) returns int sortFunc,
+                                 string[] sortFieldMetadata) {
+        int i = iBegin;
+        int j = iMiddle;
+
+        int k = iBegin;
+        while (k < iEnd) {
+            if (i < iMiddle && (j >= iEnd || sortFunc(a[i], a[j], sortFieldMetadata, 0) < 0)) {
+                b[k] = a[i];
+                i = i + 1;
+            } else {
+                b[k] = a[j];
+                j = j + 1;
+            }
+            k += 1;
+        }
+    }
+
+    public function numberSort(int|float x, int|float y) returns int {
+        match x {
+            int ix => {
+                match y {
+                    int iy => {
+                        return ix - iy;
+                    }
+                    float fy => {
+                        return <float>ix < fy ? -1 : <float>ix == fy ? 0 : 1;
+                    }
+                }
+            }
+
+            float fx => {
+                match y {
+                    int iy => {
+                        return fx < (<float>iy) ? -1 : fx == <float>iy ? 0 : 1;
+                    }
+                    float fy => {
+                        return fx < fy ? -1 : fx == fy ? 0 : 1;
+                    }
+                }
+            }
+        }
+    }
+
+    public function stringSort(string x, string y) returns int {
+
+        byte[] v1 = x.toByteArray("UTF-8");
+        byte[] v2 = y.toByteArray("UTF-8");
+
+        int len1 = lengthof v1;
+        int len2 = lengthof v2;
+        int lim = len1 < len2 ? len1 : len2;
+        int k = 0;
+        while (k < lim) {
+            int c1 = <int>v1[k];
+            int c2 = <int>v2[k];
+            if (c1 != c2) {
+                return c1 - c2;
+            }
+            k += 1;
+        }
+        return len1 - len2;
+    }
+
+    public function sortFunc(StreamEvent x, StreamEvent y, string[] sortFieldMetadata, int fieldIndex) returns int {
+        string field = fields[fieldIndex];
+        match x.data[field] { //even indices contain the field name
+            string sx => {
+                match y.data[field] {
+                    string sy => {
+                        int c;
+                        //odd indices contain the sort type (ascending/descending)
+                        if (sortFieldMetadata[fieldIndex].equalsIgnoreCase(ASCENDING)) {
+                            c = stringSort(sx, sy);
+                        } else {
+                            c = stringSort(sy, sx);
+                        }
+                        // if c == 0 then check for the next sort field
+                        return callNextSortFunc(x, y, c, sortFieldMetadata, fieldIndex + 1);
+                    }
+                    any a => {
+                        error err = { message: "Values to be orderred contain non-string values in field: " +
+                            fieldIndex + ", sortType: " + sortFieldMetadata[fieldIndex]};
+                        throw err;
+                    }
+                }
+            }
+
+            int|float ax => {
+                match y.data[field] {
+                    int|float ay => {
+                        int c;
+                        if (sortFieldMetadata[fieldIndex].equalsIgnoreCase(ASCENDING)) {
+                            c = numberSort(ax, ay);
+                        } else {
+                            c = numberSort(ay, ax);
+                        }
+                        return callNextSortFunc(x, y, c, sortFieldMetadata,fieldIndex + 1);
+                    }
+                    any aa => {
+                        error err = { message: "Values to be orderred contain non-number values in fieldIndex: " +
+                            fieldIndex + ", sortType: " + sortFieldMetadata[fieldIndex]};
+                        throw err;
+                    }
+                }
+
+            }
+            any a => {
+                error err = { message: "Values of types other than strings and numbers cannot be sorted in field: " +
+                    fieldIndex + ", sortType: " + sortFieldMetadata[fieldIndex]};
+                throw err;
+            }
+        }
+    }
+
+    public function callNextSortFunc(StreamEvent x, StreamEvent y, int c, string[] sortFieldMetadata, int fieldIndex)
+                        returns int {
+        int result = c;
+        if (result == 0 && (lengthof sortFieldMetadata > fieldIndex)) {
+            result = sortFunc(x, y, sortFieldMetadata, fieldIndex);
+        }
+        return result;
+    }
+
+    public function getCandidateEvents(
+                        StreamEvent originEvent,
+                        (function (map e1Data, map e2Data) returns boolean)? conditionFunc,
+                        boolean isLHSTrigger = true)
+                        returns (StreamEvent?, StreamEvent?)[] {
+        (StreamEvent?, StreamEvent?)[] events;
+        int i = 0;
+        foreach e in sortedWindow.asArray() {
+            match e {
+                StreamEvent s => {
+                    StreamEvent lshEvent = (isLHSTrigger) ? originEvent : s;
+                    StreamEvent rhsEvent = (isLHSTrigger) ? s : originEvent;
+                    match (conditionFunc) {
+                        function (map e1Data, map e2Data) returns boolean conditionCheckFunc => {
+                            if (conditionCheckFunc(lshEvent.data, rhsEvent.data)) {
+                                events[i] = (lshEvent, rhsEvent);
+                                i += 1;
+                            }
+                        }
+                        () => {
+                            events[i] = (lshEvent, rhsEvent);
+                            i += 1;
+                        }
+                    }
+                }
+                any a => {
+                }
+            }
+        }
+        return events;
+    }
+};
+
+public function sortWindow(any[] windowParameters, function(StreamEvent[])? nextProcessPointer = ())
+                    returns Window {
+    SortWindow sortWindow1 = new(nextProcessPointer, windowParameters);
+    return sortWindow1;
 }
