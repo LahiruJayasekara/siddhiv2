@@ -44,18 +44,15 @@ public function main(string... args) {
 
     Teacher[] teachers = [];
     Teacher t1 = { name: "Mohan", age: 30, status: "single", batch: "LK2014", school: "Hindu College" };
-    Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Hindu College" };
+    Teacher t2 = { name: "Raja", age: 45, status: "single", batch: "LK2014", school: "Royal College" };
+    Teacher t3 = { name: "Naveen", age: 30, status: "single", batch: "LK2014", school: "Hindu College"};
+    Teacher t4 = { name: "Amal", age: 50, status: "single", batch: "LK2014", school: "Hindu College"};
+
+
     teachers[0] = t1;
     teachers[1] = t2;
-    teachers[2] = t2;
-    teachers[3] = t1;
-    teachers[4] = t2;
-
-    teachers[5] = t1;
-    teachers[6] = t2;
-    teachers[7] = t1;
-    teachers[8] = t2;
-    teachers[9] = t1;
+    teachers[2] = t3;
+    teachers[3] = t4;
 
     foo();
 
@@ -74,7 +71,7 @@ public function main(string... args) {
 //  ------------- Query to be implemented -------------------------------------------------------
 //  from inputStream where inputStream.age > getValue()
 //  select inputStream.name, inputStream.age, sum (inputStream.age) as sumAge, count() as count
-//  group by inputStream.name
+//  group by inputStream.school, inputStream.age
 //      => (TeacherOutput [] o) {
 //            outputStream.publish(o);
 //      }
@@ -99,9 +96,12 @@ function foo() {
     aggregatorArr[1] = countAggregator;
 
     streams:Select select = streams:createSelect(outputProcess.process, aggregatorArr,
-        function (streams:StreamEvent e) returns string {
-            return <string>e.data["inputStream.name"];
+        [function (streams:StreamEvent e) returns string {
+            return <string>e.data["inputStream.school"];
         },
+        function (streams:StreamEvent e) returns string {
+            return <string>e.data["inputStream.age"];
+        }],
         function (streams:StreamEvent e, streams:Aggregator[] aggregatorArr1) returns map {
             streams:Sum sumAggregator1 = check <streams:Sum>aggregatorArr1[0];
             streams:Count countAggregator1 = check <streams:Count>aggregatorArr1[1];
