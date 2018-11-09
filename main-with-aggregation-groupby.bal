@@ -62,7 +62,7 @@ public function main(string... args) {
         inputStream.publish(t);
     }
 
-    runtime:sleep(5000);
+    runtime:sleep(1000);
 
     io:println("output: ", globalEmployeeArray);
 }

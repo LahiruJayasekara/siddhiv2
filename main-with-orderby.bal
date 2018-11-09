@@ -112,9 +112,9 @@ function foo() {
     streams:OrderBy orderByProcess = streams:createOrderBy(outputProcess.process, fields, ["descending"]);
 
     streams:Select select = streams:createSelect(orderByProcess.process, aggregatorArr,
-        function (streams:StreamEvent e) returns string {
+        [function (streams:StreamEvent e) returns string {
             return <string> e.data["inputStream.name"];
-        },
+        }],
         function (streams:StreamEvent e, streams:Aggregator[] aggregatorArr1) returns map {
             streams:Sum sumAggregator1 = check <streams:Sum>aggregatorArr1[0];
             streams:Count countAggregator1 = check <streams:Count>aggregatorArr1[1];
