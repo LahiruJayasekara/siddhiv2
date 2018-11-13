@@ -105,9 +105,9 @@ function joinFunc() {
 
     // Selector
     streams:Select select = streams:createSelect(outputProcess.process, aggregatorArr,
-        function (streams:StreamEvent e) returns string { // groupBy
+        [function (streams:StreamEvent e) returns string { // groupBy
             return <string>e.data["inputStreamA.category"];
-        },
+        }],
         function (streams:StreamEvent e, streams:Aggregator[] aggregatorArr1) returns map { // seclectFunction
             streams:Sum sumAggregator1 = check <streams:Sum>aggregatorArr1[0];
             // got rid of type casting
